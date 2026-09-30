@@ -82,7 +82,32 @@ class AdminService {
             },
         });
     }
+    static async findAll() {
+        return await prisma.admin.findMany({
+            select: {
+                id: true,
+                username: true,
+                mobile: true,
+                lastLogoutAt: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+    }
 
+    // 🟢 اگر متد findById هم وجود ندارد، مطمئن شوید اضافه شده است:
+    static async findById(id) {
+        return await prisma.admin.findUnique({
+            where: { id },
+        });
+    }
+
+    // 🟢 متد حذف ادمین
+    static async deleteAdmin(id) {
+        return await prisma.admin.delete({
+            where: { id },
+        });
+    }
     static async updateLastLogout(id) {
         return await prisma.admin.update({
             where: { id },
