@@ -3,7 +3,7 @@ const prisma = require('../config/database');
 
 class DemandService {
     // ۱. ثبت یک مطالبه جدید
-    static async createDemand(data) {
+    static async create(data) {
         return await prisma.demand.create({
             data: {
                 title: data.title,
@@ -14,7 +14,7 @@ class DemandService {
     }
 
     // ۲. دریافت همه مطالبات (با فیلتر اختیاری status)
-    static async getAllDemands(status) {
+    static async getAll(status) {
         const whereClause = status ? { status } : {};
         return await prisma.demand.findMany({
             where: whereClause,
@@ -25,14 +25,14 @@ class DemandService {
     }
 
     // ۳. دریافت یک مطالبه بر اساس ID
-    static async getDemandById(id) {
+    static async getById(id) {
         return await prisma.demand.findUnique({
             where: { id },
         });
     }
 
     // ۴. به‌روزرسانی وضعیت مطالبه
-    static async updateDemandStatus(id, status) {
+    static async updateStatus(id, status) {
         return await prisma.demand.update({
             where: { id },
             data: { status },
@@ -40,7 +40,7 @@ class DemandService {
     }
 
     // ۵. حذف مطالبه
-    static async deleteDemand(id) {
+    static async delete(id) {
         return await prisma.demand.delete({
             where: { id },
         });
