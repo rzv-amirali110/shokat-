@@ -11,7 +11,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "docx": "^9.8.0",
+    "@prisma/client": "^5.22.0",
+    "better-sqlite3": "^13.0.3",
+    "docx": "^9.8.1",
+    "dotenv": "^18.0.4",
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
   }
 }
