@@ -1,4 +1,5 @@
 const logger = require('../utils/logger');
+const env = require('../config/env'); // فراخوانی تنظیمات
 
 const globalErrorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500;
@@ -7,7 +8,7 @@ const globalErrorHandler = (err, req, res, next) => {
     // اکنون logger.error بدون خطا کار خواهد کرد
     logger.error(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method}`);
 
-    if (process.env.NODE_ENV === 'development') {
+    if (env.NODE_ENV === 'development') {
         return res.status(err.statusCode).json({
             status: err.status,
             error: err,
