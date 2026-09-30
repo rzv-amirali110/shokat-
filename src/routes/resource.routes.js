@@ -2,10 +2,13 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const ResourceController = require('../controllers/resource.controller');
 const upload = require('../middlewares/upload.middleware');
+const { protect } = require('../middlewares/auth.middleware');
 
 // ثبت آیتم جدید (آدرس: /api/:resource)
 router.post('/:resource', upload.single('imageUrl'), ResourceController.create);
 
+
+router.use(protect)
 // دریافت همه آیتم‌ها (آدرس: /api/:resource?status=APPROVED)
 router.get('/:resource', ResourceController.getAll);
 
