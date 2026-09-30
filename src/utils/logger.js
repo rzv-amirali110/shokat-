@@ -1,12 +1,14 @@
-class AppError extends Error {
-    constructor(message, statusCode) {
-        super(message);
-        this.statusCode = statusCode;
-        this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-        this.isOperational = true;
+const winston = require('winston');
 
-        Error.captureStackTrace(this, this.constructor);
-    }
-}
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.Console()
+    ]
+});
 
-module.exports = AppError;
+module.exports = logger;
