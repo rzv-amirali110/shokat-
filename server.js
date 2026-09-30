@@ -1,4 +1,5 @@
 require('dotenv').config();
+const env = require('./src/config/env');
 const app = require('./src/app');
 const prisma = require('./src/config/database');
 
@@ -13,7 +14,7 @@ process.on('uncaughtException', (err) => {
 
 // اجرای سرور HTTP
 const server = app.listen(PORT, () => {
-    console.log(`🚀 سرور با موفقیت روی پورت ${PORT} در حالت ${process.env.NODE_ENV || 'development'} اجرا شد.`);
+    console.log(`🚀 سرور با موفقیت روی پورت ${PORT} در حالت ${env.NODE_ENV} اجرا شد.`);
     console.log(`🌐 آدرس دسترسی: http://localhost:${PORT}`);
 });
 
