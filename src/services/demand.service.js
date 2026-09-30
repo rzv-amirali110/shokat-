@@ -1,6 +1,5 @@
-// src/services/demand.service.js
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
+
 
 class DemandService {
     // ۱. ثبت یک مطالبه جدید
