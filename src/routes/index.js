@@ -1,10 +1,10 @@
 const express = require('express');
-const demandRouters = require("./demand.routes")
+const ResourceRouters = require("./resource.routes")
 const adminRoutes = require('./admin.routes');
 
 const router = express.Router();
 
-router.use('/demand', demandRouters);
+router.use('/', ResourceRouters);
 router.use('/admin', adminRoutes);
 
 module.exports = router;
