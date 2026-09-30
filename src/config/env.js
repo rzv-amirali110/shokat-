@@ -1,21 +1,21 @@
 // src/config/env.js
 
-// فهرست متغیرهایی که وجودشان برای اجرای برنامه ۱۰۰٪ الزامی است
 const requiredEnvVars = [
     'DATABASE_URL',
     'JWT_SECRET',
     'JWT_EXPIRES_IN',
+    'SUPER_ADMIN_USERNAME',
+    'SUPER_ADMIN_MOBILE',
+    'SUPER_ADMIN_PASSWORD',
 ];
 
-// بررسی وجود متغیرهای الزامی
 for (const key of requiredEnvVars) {
     if (!process.env[key] || process.env[key].trim() === '') {
         console.error(`\n❌ [FATAL ERROR] متغیر محیطی "${key}" در فایل .env یافت نشد!\n`);
-        process.exit(1); // متوقف کردن کامل سرور
+        process.exit(1);
     }
 }
 
-// خروجی گرفتن متغیرها
 module.exports = {
     PORT: process.env.PORT || 3000,
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -27,4 +27,7 @@ module.exports = {
     ALLOWED_MIME_TYPES: process.env.ALLOWED_MIME_TYPES
         ? process.env.ALLOWED_MIME_TYPES.split(',')
         : ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+    SUPER_ADMIN_USERNAME: process.env.SUPER_ADMIN_USERNAME,
+    SUPER_ADMIN_MOBILE: process.env.SUPER_ADMIN_MOBILE,
+    SUPER_ADMIN_PASSWORD: process.env.SUPER_ADMIN_PASSWORD,
 };
