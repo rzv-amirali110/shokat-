@@ -1,0 +1,17 @@
+// STREAMING_CHUNK:Configuring database generator and datasource
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "sqlite"
+url      = env("DATABASE_URL")
+}
+
+// STREAMING_CHUNK:Defining submission model for storing items
+model Submission {
+id        Int      @id @default(autoincrement())
+category  String   // demands | memories | links
+text      String
+createdAt DateTime @default(now())
+}
