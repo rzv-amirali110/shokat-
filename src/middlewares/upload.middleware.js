@@ -2,15 +2,12 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const AppError = require('../utils/appError');
+const env = require('../config/env'); // فراخوانی تنظیمات
 
-// ۱. خواندن مقادیر از .env با مقادیر پیش‌فرض در صورت عدم وجود
-const envUploadDir = process.env.UPLOAD_DIR || 'uploads';
-const maxFileSizeMB = Number(process.env.MAX_FILE_SIZE_MB) || 5;
-
-// تبدیل فرمت‌های مجاز از رشته کاما‌دار به آرایه
-const allowedMimeTypes = process.env.ALLOWED_MIME_TYPES
-    ? process.env.ALLOWED_MIME_TYPES.split(',').map(type => type.trim())
-    : ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+// ۱. خواندن مقادیر از فایل تنظیمات
+const envUploadDir = env.UPLOAD_DIR;
+const maxFileSizeMB = Number(env.MAX_FILE_SIZE_MB);
+const allowedMimeTypes = env.ALLOWED_MIME_TYPES;
 
 // ۲. محاسبه مسیر مطلق پوشه آپلود
 const uploadDir = path.isAbsolute(envUploadDir)
@@ -22,7 +19,7 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ۳. تنظیمات محل ذخیره و نام‌گذاری فایل
+// ۳. تنظیمات محل ذخیره و نام‌گذاری پویا برای فایل‌ها
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDir);
@@ -30,7 +27,11 @@ const storage = multer.diskStorage({
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        cb(null, `demand-${uniqueSuffix}${ext}`);
+
+        // گرفتن نام منبع از URL (مثلاً demands یا stories)؛ در صورت عدم وجود از پیش‌فرض file استفاده می‌شود
+        const resourcePrefix = req.params?.resource || req.body?.type || 'file';
+
+        cb(null, `${resourcePrefix}-${uniqueSuffix}${ext}`);
     }
 });
 
