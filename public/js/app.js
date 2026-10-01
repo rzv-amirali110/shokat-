@@ -261,7 +261,7 @@ async function handleFormSubmit(event) {
             if (counterElem) {
                 let currentVal = parseInt(counterElem.innerText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))) || 0;
                 currentVal += 1;
-                counterElem.innerText = currentVal.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+                counterElem.innerText = toPersianDigits(currentVal);
             }
             closeModal();
         } else {
@@ -315,4 +315,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.id === 'modal-backdrop') closeModal();
         });
     }
+    fetchRealStats()
 });
+// تابع کمکی برای تبدیل اعداد انگلیسی به فارسی
+function toPersianDigits(num) {
+    if (num === null || num === undefined) return '۰';
+    return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+// دریافت آمار واقعی از سرور
+async function fetchRealStats() {
+    try {
+        // فرض می‌کنیم بک‌اند شما یک روت /api/stats دارد که آمار را برمی‌گرداند
+        // خروجی مورد انتظار از بک‌اند: { "demandsCount": 150, "storiesCount": 95 }
+        const response = await fetch('/api/stats');
+
+        if (response.ok) {
+            const data = await response.json();
+
+            const demandsCounter = document.getElementById('counter-demands');
+            const storiesCounter = document.getElementById('counter-stories');
+
+            if (demandsCounter && data.demandsCount !== undefined) {
+                demandsCounter.innerText = toPersianDigits(data.demandsCount);
+            }
+            if (storiesCounter && data.storiesCount !== undefined) {
+                storiesCounter.innerText = toPersianDigits(data.storiesCount);
+            }
+        }
+    } catch (error) {
+        console.error('خطا در دریافت آمار واقعی:', error);
+        // در صورت بروز خطا، همان مقادیر پیش‌فرض HTML باقی می‌مانند
+    }
+}

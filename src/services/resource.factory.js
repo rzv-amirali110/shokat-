@@ -15,4 +15,5 @@ const getService = (resource) => {
     return service;
 };
 
+
 module.exports = getService;
