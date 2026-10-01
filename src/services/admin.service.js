@@ -1,127 +1,123 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const env = require('../config/env');
 const prisma = require('../config/database');
 
+const BCRYPT_ROUNDS = 12;
+
+// هش تصادفی و غیرقابل‌حدس برای مقایسه «ساختگی» وقتی کاربر وجود ندارد؛
+// زمان پاسخ login برای کاربر موجود و ناموجود یکسان می‌شود (جلوگیری از user enumeration)
+const DUMMY_HASH = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), BCRYPT_ROUNDS);
+
+// فیلدهایی که مجاز است به کلاینت برسند (هرگز password یا lastLogoutAt)
+const PUBLIC_SELECT = {
+    id: true,
+    username: true,
+    mobile: true,
+    createdAt: true,
+};
+
 class AdminService {
     // ۱. ساخت سوپر ادمین اولیه در صورت خالی بودن جدول ادمین‌ها
     static async initSuperAdmin() {
-        try {
-            const count = await prisma.admin.count();
+        const { SUPER_ADMIN_USERNAME, SUPER_ADMIN_MOBILE, SUPER_ADMIN_PASSWORD } = env;
 
-            // اگر هیچ ادمینی در دیتابیس وجود ندارد
-            if (count === 0) {
-                const hashedPassword = await bcrypt.hash(env.SUPER_ADMIN_PASSWORD, 10);
+        const count = await prisma.admin.count();
+        if (count > 0) return;
 
-                await prisma.admin.create({
-                    data: {
-                        username: env.SUPER_ADMIN_USERNAME,
-                        mobile: env.SUPER_ADMIN_MOBILE,
-                        password: hashedPassword,
-                    },
-                });
-
-                console.log(`✅ سوپر ادمین اولیه با نام کاربری "${env.SUPER_ADMIN_USERNAME}" ایجاد شد.`);
-            }
-        } catch (error) {
-            console.error('❌ خطا در ایجاد سوپر ادمین اولیه:', error.message);
+        // fail-fast: اگر تنظیمات ناقص باشد سرور بدون ادمین بالا نمی‌آید
+        if (!SUPER_ADMIN_USERNAME || !SUPER_ADMIN_MOBILE || !SUPER_ADMIN_PASSWORD) {
+            throw new Error('متغیرهای SUPER_ADMIN_USERNAME / MOBILE / PASSWORD در env تنظیم نشده‌اند.');
         }
+
+        await prisma.admin.create({
+            data: {
+                username: SUPER_ADMIN_USERNAME,
+                mobile: SUPER_ADMIN_MOBILE,
+                password: await bcrypt.hash(SUPER_ADMIN_PASSWORD, BCRYPT_ROUNDS),
+            },
+        });
+
+        console.log(`✅ سوپر ادمین اولیه با نام کاربری "${SUPER_ADMIN_USERNAME}" ایجاد شد.`);
     }
 
-    // ۲. ساخت ادمین جدید دستی
+    // ۲. ساخت ادمین جدید
     static async createAdmin({ username, mobile, password }) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        return await prisma.admin.create({
+        return prisma.admin.create({
             data: {
                 username,
                 mobile,
-                password: hashedPassword,
+                password: await bcrypt.hash(password, BCRYPT_ROUNDS),
             },
-            select: {
-                id: true,
-                username: true,
-                mobile: true,
-                createdAt: true,
-            },
+            select: PUBLIC_SELECT,
         });
     }
 
-    // ۳. یافتن ادمین با یوزرنیم (برای لاگین)
+    // ۳. فقط برای login: شامل هش رمز است؛ نتیجه را هرگز مستقیم به کلاینت نفرستید
     static async findByUsername(username) {
-        return await prisma.admin.findUnique({
-            where: { username },
-        });
+        return prisma.admin.findUnique({ where: { username } });
     }
 
-    // ۴. یافتن ادمین با شناسه (ID)
+    // ۴. اطلاعات عمومی ادمین (بدون رمز و بدون lastLogoutAt)
     static async findById(id) {
-        return await prisma.admin.findUnique({
+        return prisma.admin.findUnique({ where: { id }, select: PUBLIC_SELECT });
+    }
+
+    // ۵. فقط برای میدل‌ور protect: شامل lastLogoutAt برای ابطال توکن بعد از logout
+    static async findAuthById(id) {
+        return prisma.admin.findUnique({
             where: { id },
-            select: {
-                id: true,
-                username: true,
-                mobile: true,
-                createdAt: true,
-            },
+            select: { ...PUBLIC_SELECT, lastLogoutAt: true },
         });
     }
 
-    // ۵. مقایسه پسورد ورودی با پسورد هش‌شده دیتابیس
-    static async verifyPassword(plainPassword, hashedPassword) {
-        return await bcrypt.compare(plainPassword, hashedPassword);
+    // ۶. فقط برای تغییر رمز: هش رمز فعلی
+    static async findPasswordHashById(id) {
+        const admin = await prisma.admin.findUnique({ where: { id }, select: { password: true } });
+        return admin?.password ?? null;
     }
 
-    // ۶. حذف ادمین با شناسه (ID)
-    static async deleteAdmin(id) {
-        return await prisma.admin.delete({
-            where: { id },
-            select: {
-                id: true,
-                username: true,
-                mobile: true,
-            },
-        });
-    }
     static async findAll() {
-        return await prisma.admin.findMany({
-            select: {
-                id: true,
-                username: true,
-                mobile: true,
-                lastLogoutAt: true,
-                createdAt: true,
-                updatedAt: true,
-            },
+        return prisma.admin.findMany({
+            select: { ...PUBLIC_SELECT, updatedAt: true },
+            orderBy: { createdAt: 'asc' },
         });
     }
 
-    // 🟢 متد حذف ادمین
-    static async deleteAdmin(id) {
-        return await prisma.admin.delete({
-            where: { id },
-        });
+    /**
+     * مقایسه رمز. اگر hash وجود نداشت (کاربر ناموجود) با هش ساختگی مقایسه می‌کند
+     * تا زمان پاسخ یکسان بماند؛ در این حالت هرگز true برنمی‌گردد.
+     */
+    static async verifyPassword(plainPassword, hashedPassword) {
+        const isRealHash = Boolean(hashedPassword);
+        const matches = await bcrypt.compare(plainPassword, hashedPassword || DUMMY_HASH);
+        return isRealHash && matches;
     }
-    static async updateLastLogout(id) {
-        return await prisma.admin.update({
-            where: { id },
-            data: {
-                lastLogoutAt: new Date(),
-            },
-        });
-    }
-    // نمونه متدهای مورد نیاز در AdminService
+
     static async updateAdmin(id, updateData) {
-        return await prisma.admin.update({
-            where: { id },
-            data: updateData,
-        });
+        return prisma.admin.update({ where: { id }, data: updateData, select: PUBLIC_SELECT });
     }
 
     static async updatePassword(id, newPassword) {
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-        return await prisma.admin.update({
+        return prisma.admin.update({
             where: { id },
-            data: { password: hashedPassword },
+            data: { password: await bcrypt.hash(newPassword, BCRYPT_ROUNDS) },
+            select: { id: true },
+        });
+    }
+
+    static async updateLastLogout(id) {
+        return prisma.admin.update({
+            where: { id },
+            data: { lastLogoutAt: new Date() },
+            select: { id: true },
+        });
+    }
+
+    static async deleteAdmin(id) {
+        return prisma.admin.delete({
+            where: { id },
+            select: { id: true, username: true, mobile: true },
         });
     }
 }

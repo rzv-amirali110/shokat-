@@ -17,7 +17,8 @@ router.post('/logout', AdminController.logout);
 
 // مدیریت پروفایل ادمین جاری
 router.get('/me', AdminController.getMe);
-router.patch('/update-me', AdminController.updateMe);               // 🟢 تغییر نام کاربری و/یا شماره موبایل
+router.patch('/update-me', AdminController.updateMe);  
+router.put('/:id', AdminController.updateAdmin);             // 🟢 تغییر نام کاربری و/یا شماره موبایل
 router.patch('/change-password', AdminController.changePassword);   // 🟢 تغییر رمز عبور
 
 router.post('/register', AdminController.register);
