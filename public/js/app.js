@@ -8,7 +8,7 @@ const categoriesConfig = {
         subjectPlaceholder: 'مثلاً: کیفیت غذای سلف مرکزی، مشکلات انتخاب واحد، یا سرویس خوابگاه...',
         placeholder: 'شرح کامل دغدغه خود را بنویسید (مثلاً: عدم هماهنگی سرویس‌های خوابگاه با کلاس‌های بعدازظهر دانشکده فنی، نامناسب بودن سیستم گرمایشی دانشکده...)'
     },
-    memories: {
+    stories: {
         title: 'ثبت خاطرات و تجربه‌های دانشجویی',
         subtitle: 'خاطرات ماندگار، طنز یا ارزشمند دوران دانشجویی خود را ثبت کنید.',
         icon: 'fa-book-bookmark',
@@ -121,44 +121,42 @@ async function handleFormSubmit(event) {
     event.preventDefault();
 
     const submitBtn = document.getElementById('submit-btn');
-    const category = document.getElementById('category-input').value;
-    const subject = document.getElementById('subject-field').value;
+    const category = document.getElementById('category-input').value; // demands یا stories
+    const subject = document.getElementById('subject-field').value.trim();
     const content = document.getElementById('content-field').value.trim();
-    const isAnonymous = document.getElementById('anonymous-check').checked;
     const imageFile = document.getElementById('image-upload').files[0];
 
-    if (!content) {
-        showToast('لطفاً متن اصلی را وارد کنید.', 'error');
+    if (!subject || !content) {
+        showToast('عنوان و متن اصلی الزامی هستند.', 'error');
         return;
     }
 
     // Show Loading State
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
-                <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
-                <span>در حال ارسال...</span>
-            `;
+        <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
+        <span>در حال ارسال...</span>
+    `;
 
     try {
-        // Prepare FormData for handling text and photo uploads
         const formData = new FormData();
-        formData.append('category', category);
-        formData.append('subject', subject);
-        formData.append('text', content);
-        formData.append('isAnonymous', isAnonymous);
+        formData.append('title', subject);
+        formData.append('description', content);
+        
         if (imageFile) {
-            formData.append('image', imageFile);
+            formData.append('imageUrl', imageFile);
         }
 
-        // Send request to Backend Endpoint (Prepared for Node.js API)
-        const response = await fetch('/api/submit', {
+        // ارسال درخواست به /api/demands یا /api/stories
+        const response = await fetch(`/api/${category}`, {
             method: 'POST',
             body: formData
         });
 
-        // Simulate success if local dev / test
-        if (response.ok || response.status === 404) {
-            showToast('پیام شما با موفقیت ثبت شد و پس از بررسی قرار خواهد گرفت.', 'success');
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast(result.message || 'پیام شما با موفقیت ثبت شد و پس از بررسی قرار خواهد گرفت.', 'success');
 
             // Increment Local UI Counter
             const counterElem = document.getElementById(`counter-${category}`);
@@ -170,18 +168,16 @@ async function handleFormSubmit(event) {
 
             closeModal();
         } else {
-            showToast('خطایی در ارتباط با سرور رخ داد.', 'error');
+            showToast(result.message || 'خطایی در ثبت اطلاعات رخ داد.', 'error');
         }
     } catch (err) {
-        // Local fallback for demo preview
-        showToast('پیام شما با موفقیت ثبت شد!', 'success');
-        closeModal();
+        showToast('خطا در ارتباط با سرور. لطفا اتصال اینترنت را بررسی کنید.', 'error');
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
-                    <span>ثبت نهایی و ارسال</span>
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                `;
+            <span>ثبت نهایی و ارسال</span>
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+        `;
     }
 }
 
@@ -196,9 +192,9 @@ function showToast(message, type = 'success') {
 
     toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl border backdrop-blur-lg shadow-xl text-xs sm:text-sm font-medium transition-all duration-300 transform translate-y-4 opacity-0 ${bgColor}`;
     toast.innerHTML = `
-                <i class="fa-solid ${icon} text-base"></i>
-                <span>${message}</span>
-            `;
+        <i class="fa-solid ${icon} text-base"></i>
+        <span>${message}</span>
+    `;
 
     container.appendChild(toast);
 
@@ -220,6 +216,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Close modal when clicking outside modal box
-document.getElementById('modal-backdrop').addEventListener('click', (e) => {
-    if (e.target.id === 'modal-backdrop') closeModal();
+document.addEventListener('DOMContentLoaded', () => {
+    const backdrop = document.getElementById('modal-backdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', (e) => {
+            if (e.target.id === 'modal-backdrop') closeModal();
+        });
+    }
 });
