@@ -123,6 +123,25 @@ class ResourceController {
             next(error);
         }
     }
+
+    static async getStats(req, res, next) {
+        try {
+            const demandService = getService('demands');
+            const storyService = getService('stories');
+
+            const demandsCount = await demandService.count();
+            const storiesCount = await storyService.count();
+
+            res.status(200).json({
+                status: 'success',
+                // این ساختار دقیقا همانی است که در کد فرانت‌اند قبلی نوشتیم
+                demandsCount,
+                storiesCount
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = ResourceController;

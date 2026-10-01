@@ -45,6 +45,12 @@ class DemandService {
             where: { id },
         });
     }
+    static async count(status) {
+        const whereClause = status ? { status } : {};
+        return await prisma.demand.count({
+            where: whereClause,
+        });
+    }
 }
 
 module.exports = DemandService;

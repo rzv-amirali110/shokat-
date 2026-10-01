@@ -4,6 +4,8 @@ const ResourceController = require('../controllers/resource.controller');
 const upload = require('../middlewares/upload.middleware');
 const { protect } = require('../middlewares/auth.middleware');
 
+
+router.get('/stats', ResourceController.getStats);
 // ثبت آیتم جدید (آدرس: /api/:resource)
 router.post('/:resource', upload.single('imageUrl'), ResourceController.create);
 
