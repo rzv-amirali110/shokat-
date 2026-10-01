@@ -21,7 +21,59 @@ let exportedIds = JSON.parse(localStorage.getItem('exported_submissions') || '[]
 
 window.addEventListener('DOMContentLoaded', () => {
     checkAuth();
+    setupFormListeners();
 });
+
+// 🟢 ایجاد یا دریافت خودکار کانتینر نوتیفیکیشن‌ها
+function getOrCreateToastContainer() {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed top-5 left-1/2 -translate-x-1/2 md:left-5 md:translate-x-0 z-[9999] flex flex-col gap-2 pointer-events-none w-11/12 max-w-sm';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+// 🟢 نمایش پیام‌های نوتیفیکیشن (Toast)
+function showToast(message, type = 'info') {
+    const container = getOrCreateToastContainer();
+
+    const toast = document.createElement('div');
+    const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-amber-600';
+
+    toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center justify-between transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto border border-white/10`;
+    toast.innerHTML = `
+        <span class="leading-relaxed">${escapeHTML(message)}</span>
+        <button onclick="this.parentElement.remove()" class="mr-2 text-white/80 hover:text-white cursor-pointer text-base leading-none">&times;</button>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+    setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// 🟢 اتصال خودکار شنودگرهای فرم‌ها برای اطمینان از عملکرد دکمه‌ها
+function setupFormListeners() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
+    const addAdminForm = document.getElementById('add-admin-form');
+    if (addAdminForm) addAdminForm.addEventListener('submit', handleCreateAdmin);
+
+    const editAdminForm = document.getElementById('edit-admin-form');
+    if (editAdminForm) editAdminForm.addEventListener('submit', handleUpdateAdmin);
+
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) profileForm.addEventListener('submit', handleUpdateProfile);
+
+    const passwordForm = document.getElementById('change-password-form');
+    if (passwordForm) passwordForm.addEventListener('submit', handleChangePassword);
+}
 
 function saveExportedIds() {
     localStorage.setItem('exported_submissions', JSON.stringify(exportedIds));
@@ -46,6 +98,17 @@ function escapeHTML(str) {
         '"': '&quot;',
         "'": '&#39;'
     }[match]));
+}
+
+// 🟢 اعتبارسنجی پیچیدگی رمز عبور (حداقل ۸ کاراکتر شامل حروف، عدد و علامت)
+function validatePassword(password) {
+    if (!password) return false;
+    const minLength = password.length >= 8;
+    const hasLetter = /[a-zA-Zآ-ی]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password);
+
+    return minLength && hasLetter && hasNumber && hasSymbol;
 }
 
 // تابع دریافت و تبدیل عکس به ArrayBuffer جهت استفاده در docx.js
@@ -160,7 +223,7 @@ async function handleLogout() {
 }
 
 // ==========================================
-// ۲. مدیریت ادمین‌ها (Register, GetList, Delete)
+// ۲. مدیریت ادمین‌ها و ویرایش اطلاعات مدیر
 // ==========================================
 
 async function fetchAdmins() {
@@ -204,11 +267,16 @@ function renderAdmins() {
                 ${admin.createdAt ? new Date(admin.createdAt).toLocaleDateString('fa-IR') : '-'}
             </td>
             <td class="p-2 sm:p-3 text-center">
-                ${!isSelf ? `
-                    <button onclick="deleteAdmin('${adminId}')" class="text-rose-400 hover:text-rose-300 p-1 transition-colors cursor-pointer text-xs" title="حذف ادمین">
-                        <i class="fa-solid fa-trash"></i> حذف
+                <div class="flex items-center justify-center gap-2">
+                    <button onclick="openEditAdminModal('${adminId}')" class="text-amber-400 hover:text-amber-300 p-1 transition-colors cursor-pointer text-xs flex items-center gap-1" title="ویرایش مدیر">
+                        <i class="fa-solid fa-user-pen"></i> ویرایش
                     </button>
-                ` : '<span class="text-gray-500 text-xs">-</span>'}
+                    ${!isSelf ? `
+                        <button onclick="deleteAdmin('${adminId}')" class="text-rose-400 hover:text-rose-300 p-1 transition-colors cursor-pointer text-xs flex items-center gap-1" title="حذف ادمین">
+                            <i class="fa-solid fa-trash"></i> حذف
+                        </button>
+                    ` : ''}
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
@@ -233,8 +301,8 @@ async function handleCreateAdmin(e) {
         return;
     }
 
-    if (password.length < 6) {
-        showToast('رمز عبور باید حداقل ۶ کاراکتر باشد.', 'error');
+    if (!validatePassword(password)) {
+        showToast('رمز عبور باید حداقل ۸ کاراکتر و شامل ترکیبی از حروف، اعداد و علامت‌ها باشد.', 'error');
         return;
     }
 
@@ -260,7 +328,108 @@ async function handleCreateAdmin(e) {
         showToast('خطا در برقراری ارتباط با سرور', 'error');
     }
 }
-const handleAddAdmin = handleCreateAdmin;
+
+function openEditAdminModal(id) {
+    const admin = admins.find(a => String(a.id || a._id) === String(id)) || 
+                  (currentAdminUser && String(currentAdminUser.id || currentAdminUser._id) === String(id) ? currentAdminUser : null);
+
+    if (!admin) {
+        showToast('اطلاعات مدیر موردنظر یافت نشد.', 'error');
+        return;
+    }
+
+    const modal = document.getElementById('edit-admin-modal-backdrop');
+    if (!modal) return;
+
+    const idInput = document.getElementById('edit-admin-id');
+    const usernameInput = document.getElementById('edit-admin-username');
+    const mobileInput = document.getElementById('edit-admin-mobile');
+    const passwordInput = document.getElementById('edit-admin-password');
+
+    if (idInput) idInput.value = admin.id || admin._id;
+    if (usernameInput) usernameInput.value = admin.username || '';
+    if (mobileInput) mobileInput.value = admin.mobile || '';
+    if (passwordInput) passwordInput.value = '';
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.querySelector('.glass-modal')?.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeEditAdminModal() {
+    const modal = document.getElementById('edit-admin-modal-backdrop');
+    if (!modal) return;
+
+    modal.classList.add('opacity-0');
+    modal.querySelector('.glass-modal')?.classList.add('scale-95');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+async function handleUpdateAdmin(e) {
+    if (e) e.preventDefault();
+
+    const id = document.getElementById('edit-admin-id')?.value;
+    const username = document.getElementById('edit-admin-username')?.value.trim();
+    const mobile = document.getElementById('edit-admin-mobile')?.value.trim();
+    const password = document.getElementById('edit-admin-password')?.value;
+
+    if (!id) {
+        showToast('شناسه مدیر مشخص نیست.', 'error');
+        return;
+    }
+
+    if (!username || !mobile) {
+        showToast('نام کاربری و شماره موبایل الزامی هستند.', 'error');
+        return;
+    }
+
+    const mobileRegex = /^09\d{9}$/;
+    if (!mobileRegex.test(mobile)) {
+        showToast('شماره موبایل واردشده معتبر نیست (مثال: 09123456789).', 'error');
+        return;
+    }
+
+    if (password && !validatePassword(password)) {
+        showToast('رمز عبور جدید باید حداقل ۸ کاراکتر و شامل ترکیبی از حروف، اعداد و علامت‌ها باشد.', 'error');
+        return;
+    }
+
+    const payload = { username, mobile };
+    if (password) {
+        payload.password = password;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast(data.message || 'اطلاعات مدیر با موفقیت به‌روزرسانی شد.', 'success');
+
+            if (currentAdminUser && String(currentAdminUser.id || currentAdminUser._id) === String(id)) {
+                currentAdminUser.username = username;
+                currentAdminUser.mobile = mobile;
+                const badgeElem = document.getElementById('current-user-badge');
+                if (badgeElem) badgeElem.innerText = username;
+            }
+
+            closeEditAdminModal();
+            fetchAdmins();
+        } else {
+            showToast(data.message || 'خطا در به‌‌روزرسانی اطلاعات مدیر', 'error');
+        }
+    } catch (error) {
+        showToast('خطا در برقراری ارتباط با سرور', 'error');
+    }
+}
 
 async function deleteAdmin(id) {
     if (currentAdminUser && (currentAdminUser.id === id || currentAdminUser._id === id)) {
@@ -289,8 +458,92 @@ async function deleteAdmin(id) {
     }
 }
 
+async function handleUpdateProfile(e) {
+    if (e) e.preventDefault();
+
+    const username = document.getElementById('profile-username')?.value.trim();
+    const mobile = document.getElementById('profile-mobile')?.value.trim();
+
+    if (!username && !mobile) {
+        showToast('لطفاً حداقل یکی از فیلدها را وارد کنید.', 'error');
+        return;
+    }
+
+    if (mobile) {
+        const mobileRegex = /^09\d{9}$/;
+        if (!mobileRegex.test(mobile)) {
+            showToast('شماره موبایل واردشده معتبر نیست (مثال: 09123456789).', 'error');
+            return;
+        }
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/update-me`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ username, mobile })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast(data.message || 'اطلاعات پروفایل با موفقیت بروزرسانی شد.', 'success');
+            if (data.data?.admin) {
+                currentAdminUser = data.data.admin;
+                const badgeElem = document.getElementById('current-user-badge');
+                if (badgeElem) badgeElem.innerText = currentAdminUser.username || 'مدیر ارشد';
+            }
+            closeProfileModal();
+            fetchAdmins();
+        } else {
+            showToast(data.message || 'خطا در بروزرسانی پروفایل', 'error');
+        }
+    } catch (error) {
+        showToast('خطا در برقراری ارتباط با سرور', 'error');
+    }
+}
+
+async function handleChangePassword(e) {
+    if (e) e.preventDefault();
+
+    const currentPassword = document.getElementById('current-password')?.value;
+    const newPassword = document.getElementById('new-password')?.value;
+
+    if (!currentPassword || !newPassword) {
+        showToast('لطفاً رمز عبور فعلی و جدید را وارد کنید.', 'error');
+        return;
+    }
+
+    if (!validatePassword(newPassword)) {
+        showToast('رمز عبور جدید باید حداقل ۸ کاراکتر و شامل ترکیبی از حروف، اعداد و علامت‌ها باشد.', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/change-password`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast(data.message || 'رمز عبور با موفقیت تغییر یافت.', 'success');
+            document.getElementById('change-password-form')?.reset();
+            closePasswordModal();
+        } else {
+            showToast(data.message || 'خطا در تغییر رمز عبور', 'error');
+        }
+    } catch (error) {
+        showToast('خطا در برقراری ارتباط با سرور', 'error');
+    }
+}
+
 // ==========================================
-// ۳. دریافت و نمایش مطالبات و خاطرات (Submissions)
+// ۳. دریافت، نمایش و حذف مطالبات و خاطرات (Submissions)
 // ==========================================
 
 async function fetchSubmissions() {
@@ -418,6 +671,12 @@ function renderSubmissions() {
                             انتظار
                         </button>
                     </div>
+
+                    <button onclick="deleteSubmission('${itemId}', '${item.resourceType}')" 
+                            class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 hover:bg-rose-600 hover:text-white text-[11px] transition-all cursor-pointer"
+                            title="حذف این مورد">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
                 </div>
             </td>
         `;
@@ -456,6 +715,35 @@ async function updateItemStatus(id, resourceType, newStatus) {
     }
 }
 
+async function deleteSubmission(id, resourceType) {
+    if (!confirm('آیا از حذف این مورد اطمینان دارید؟ این عملیات قابل بازگشت نیست.')) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/${resourceType}/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            showToast(data.message || 'با موفقیت حذف شد.', 'success');
+
+            submissions = submissions.filter(s => String(s._id || s.id) !== String(id));
+            updateStats();
+            renderSubmissions();
+
+            if (window.currentActiveModalItem && String(window.currentActiveModalItem.id) === String(id)) {
+                closeDetailModal();
+            }
+        } else {
+            showToast(data.message || 'خطا در حذف مورد', 'error');
+        }
+    } catch (error) {
+        showToast('خطا در برقراری ارتباط با سرور', 'error');
+    }
+}
+
 function getStatusBadgeClass(status) {
     switch (status) {
         case 'APPROVED': return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
@@ -488,6 +776,10 @@ function updateStats() {
 // ۴. خروجی دسته‌ای فایل Word به همراه تصاویر با docx.js
 // ==========================================
 
+// ==========================================
+// ۴. خروجی دسته‌ای فایل Word (فقط موارد تایید شده)
+// ==========================================
+
 async function exportBatchToWord(resourceType) {
     const docxLib = window.docx;
     if (!docxLib) {
@@ -495,13 +787,15 @@ async function exportBatchToWord(resourceType) {
         return;
     }
 
+    // 🟢 فیلتر فقط موارد تایید شده (APPROVED) که قبلا خروجی گرفته نشده‌اند
     const pendingExportItems = submissions.filter(s =>
         s.resourceType === resourceType &&
+        s.status === 'APPROVED' &&
         !exportedIds.includes(String(s._id || s.id))
     ).slice(0, 50);
 
     if (pendingExportItems.length === 0) {
-        showToast('هیچ پیام خروجی‌نگرفته‌ای برای این بخش وجود ندارد.', 'info');
+        showToast('هیچ پیام تاییدشده و خروجی‌نگرفته‌ای برای این بخش وجود ندارد.', 'info');
         return;
     }
 
@@ -512,7 +806,7 @@ async function exportBatchToWord(resourceType) {
 
         const children = [
             new Paragraph({
-                text: `گزارش دسته‌ای ${resourceType === 'demands' ? 'مطالبات' : 'خاطرات'} - شوکت نیوز`,
+                text: `گزارش دسته‌ای ${resourceType === 'demands' ? 'مطالبات' : 'خاطرات'} تاییدشده شوکت نیوز`,
                 heading: HeadingLevel.HEADING_1,
                 alignment: AlignmentType.RIGHT,
                 bidirectional: true
@@ -524,12 +818,11 @@ async function exportBatchToWord(resourceType) {
             const itemId = String(item._id || item.id);
             const fullImgUrl = getImageUrl(item.imageUrl);
 
-            // عنوان پیام
             children.push(
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: `\n#${idx + 1} - ${item.title || 'بدون عنوان'} (${getStatusText(item.status)})`,
+                            text: `\n#${idx + 1} ${item.title || 'بدون عنوان'} (${getStatusText(item.status)})`,
                             bold: true,
                             size: 28
                         })
@@ -537,7 +830,6 @@ async function exportBatchToWord(resourceType) {
                     alignment: AlignmentType.RIGHT,
                     bidirectional: true
                 }),
-                // متن پیام
                 new Paragraph({
                     children: [
                         new TextRun({
@@ -550,7 +842,6 @@ async function exportBatchToWord(resourceType) {
                 })
             );
 
-            // در داخل حلقه for...of تابع exportBatchToWord:
             if (fullImgUrl) {
                 try {
                     const imgBuffer = await fetchImageAsBuffer(fullImgUrl);
@@ -589,7 +880,7 @@ async function exportBatchToWord(resourceType) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${resourceType}-export-${Date.now()}.docx`;
+        a.download = `${resourceType}-approved-export-${Date.now()}.docx`;
         document.body.appendChild(a);
         a.click();
 
@@ -601,7 +892,7 @@ async function exportBatchToWord(resourceType) {
         saveExportedIds();
         updateStats();
         renderSubmissions();
-        showToast(`${pendingExportItems.length} پیام (به همراه تصویر) با موفقیت خروجی داده شد.`, 'success');
+        showToast(`${pendingExportItems.length} پیام تاییدشده (به همراه تصویر) با موفقیت خروجی داده شد.`, 'success');
 
     } catch (err) {
         console.error('خطا در خروجی فایل Word:', err);
@@ -634,7 +925,7 @@ function openDetailModal(id, resourceType) {
         const isExported = exportedIds.includes(itemId);
         exportStatusElem.innerHTML = `
             <button onclick="toggleExportStatus('${itemId}')" class="hover:underline cursor-pointer">
-                وضعیت خروجی: ${isExported ? '<span class="text-sky-400 font-bold">گرفته‌شده (برای لغو کلیک کنید)</span>' : '<span class="text-gray-400">گرفته‌نشده</span>'}
+                وضعیت خروجی: ${isExported ? '<span class="text-sky-400 font-bold">گرفته‌شده (برای لغو کلیک کنید)</span>' : '<span class="text-gray-400">گرفته‌‌نشده</span>'}
             </button>
         `;
     }
@@ -652,6 +943,11 @@ function openDetailModal(id, resourceType) {
     } else {
         imageBox.classList.add('hidden');
         imgElem.src = '';
+    }
+
+    const deleteBtnInModal = document.getElementById('modal-btn-delete');
+    if (deleteBtnInModal) {
+        deleteBtnInModal.onclick = () => deleteSubmission(itemId, item.resourceType);
     }
 
     window.currentActiveModalItem = { id: itemId, resourceType: item.resourceType };
@@ -721,9 +1017,43 @@ function closeAdminModal() {
     setTimeout(() => modal.classList.add('hidden'), 300);
 }
 
-function togglePasswordVisibility() {
-    const input = document.getElementById('admin-password');
-    const icon = document.getElementById('pass-eye-icon');
+function openProfileModal() {
+    const modal = document.getElementById('profile-modal-backdrop');
+    if (!modal) return;
+    if (currentAdminUser) {
+        const usernameInput = document.getElementById('profile-username');
+        const mobileInput = document.getElementById('profile-mobile');
+        if (usernameInput) usernameInput.value = currentAdminUser.username || '';
+        if (mobileInput) mobileInput.value = currentAdminUser.mobile || '';
+    }
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById('profile-modal-backdrop');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+function openPasswordModal() {
+    const modal = document.getElementById('password-modal-backdrop');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
+function closePasswordModal() {
+    const modal = document.getElementById('password-modal-backdrop');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    setTimeout(() => modal.classList.add('hidden'), 300);
+}
+
+function togglePasswordVisibility(inputId = 'admin-password', iconId = 'pass-eye-icon') {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
     if (!input || !icon) return;
 
     if (input.type === 'password') {
@@ -757,38 +1087,14 @@ function toggleMobileMenu() {
     }
 }
 
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    const bgClass = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-amber-600';
-
-    toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center justify-between transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
-    toast.innerHTML = `
-        <span>${escapeHTML(message)}</span>
-        <button onclick="this.parentElement.remove()" class="mr-2 text-white/80 hover:text-white cursor-pointer">&times;</button>
-    `;
-
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
-    setTimeout(() => {
-        toast.classList.add('opacity-0');
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-// لغو یا تغییر وضعیت خروجی گرفته‌شده برای یک پیام
 function toggleExportStatus(id) {
     const itemId = String(id);
     const index = exportedIds.indexOf(itemId);
 
     if (index !== -1) {
-        // حذف از لیست خروجی‌گرفته‌شده‌ها
         exportedIds.splice(index, 1);
         showToast('پیام از حالت خروجی‌گرفته‌شده خارج شد و مجدداً آماده دانلود است.', 'info');
     } else {
-        // اضافه کردن به لیست خروجی‌گرفته‌شده‌ها
         exportedIds.push(itemId);
         showToast('پیام به عنوان خروجی‌گرفته‌شده نشانه‌گذاری شد.', 'success');
     }

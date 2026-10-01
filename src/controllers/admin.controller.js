@@ -10,6 +10,7 @@ const signToken = (id) => {
         { expiresIn: env.JWT_EXPIRES_IN }
     );
 };
+
 class AdminController {
     static async register(req, res, next) {
         try {
@@ -39,7 +40,7 @@ class AdminController {
                 data: { admin },
             });
         } catch (error) {
-            // کد P2002 در پریزما مربوط به نقض یکتا بودن (Unique constraint) مثل username یا mobile تکراری است
+            // کد P2002 در پریزما مربوط به نقض یکتا بودن (Unique constraint)
             if (error.code === 'P2002') {
                 const targetField = error.meta?.target?.[0] === 'mobile' ? 'شماره موبایل' : 'نام کاربری';
                 return next(new AppError(`این ${targetField} قبلاً در سیستم ثبت شده است.`, 400));
@@ -47,7 +48,6 @@ class AdminController {
             next(error);
         }
     }
-    // اضافه کردن این متدها به کلاس AdminController در src/controllers/admin.controller.js
 
     // دریافت لیست کامل ادمین‌ها
     static async getAllAdmins(req, res, next) {
@@ -84,62 +84,59 @@ class AdminController {
         }
     }
 
-    // ۲. ورود ادمین (Login)
-    // ۲. ورود ادمین (Login)
-static async login(req, res, next) {
-    try {
-        const { username, password } = req.body || {};
+    // ورود ادمین (Login)
+    static async login(req, res, next) {
+        try {
+            const { username, password } = req.body || {};
 
-        if (!username || !password) {
-            return next(new AppError('لطفاً نام کاربری و رمز عبور را وارد کنید.', 400));
+            if (!username || !password) {
+                return next(new AppError('لطفاً نام کاربری و رمز عبور را وارد کنید.', 400));
+            }
+
+            // پیدا کردن ادمین بر اساس نام کاربری
+            const admin = await AdminService.findByUsername(username);
+
+            if (!admin) {
+                return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
+            }
+
+            // بررسی صحت رمز عبور
+            const isPasswordValid = await AdminService.verifyPassword(password, admin.password);
+
+            if (!isPasswordValid) {
+                return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
+            }
+
+            const token = signToken(admin.id);
+
+            const cookieExpiresInHours = Number(process.env.JWT_COOKIE_EXPIRES_IN || env.JWT_COOKIE_EXPIRES_IN || 1);
+
+            const cookieOptions = {
+                maxAge: cookieExpiresInHours * 60 * 60 * 1000,
+                httpOnly: true,
+                secure: true,        // الزام برای SameSite=None
+                sameSite: 'none',    // اجازه ارسال در درخواست‌های Cross-Site
+                partitioned: true,   // رفع هشدار CHIPS / Partitioned Cookies
+            };
+
+            res.cookie('jwt', token, cookieOptions);
+
+            const { password: _, ...adminData } = admin;
+
+            res.status(200).json({
+                status: 'success',
+                message: 'با موفقیت وارد شدید.',
+                token,
+                data: { admin: adminData },
+            });
+        } catch (error) {
+            next(error);
         }
-
-        // پیدا کردن ادمین بر اساس نام کاربری
-        const admin = await AdminService.findByUsername(username);
-
-        if (!admin) {
-            return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
-        }
-
-        // بررسی صحت رمز عبور
-        const isPasswordValid = await AdminService.verifyPassword(password, admin.password);
-
-        if (!isPasswordValid) {
-            return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
-        }
-
-        // 🟢 ۱. ساخت متغیر token (این خط حتماً باید اینجا باشد)
-        const token = signToken(admin.id);
-
-        // 🟢 ۲. تنظیمات کوکی بر اساس env
-        const cookieExpiresInHours = Number(process.env.JWT_COOKIE_EXPIRES_IN || env.JWT_COOKIE_EXPIRES_IN || 1);
-
-        const cookieOptions = {
-            maxAge: cookieExpiresInHours * 60 * 60 * 1000, // تبدیل ساعت به میلی‌ثانیه
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-        };
-
-        // 🟢 ۳. ست کردن کوکی با استفاده از متغیر token
-        res.cookie('jwt', token, cookieOptions);
-
-        const { password: _, ...adminData } = admin;
-
-        res.status(200).json({
-            status: 'success',
-            message: 'با موفقیت وارد شدید.',
-            token, // ارسال توکن در پاسخ
-            data: { admin: adminData },
-        });
-    } catch (error) {
-        next(error);
     }
-}
-    // ۳. دریافت اطلاعات ادمین جاری (پروفایل)
+
+    // دریافت اطلاعات ادمین جاری (پروفایل)
     static async getMe(req, res, next) {
         try {
-            // req.admin توسط میدل‌ور احراز هویت (Auth Middleware) پر می‌شود
             res.status(200).json({
                 status: 'success',
                 data: { admin: req.admin },
@@ -148,13 +145,107 @@ static async login(req, res, next) {
             next(error);
         }
     }
-    // در فایل src/controllers/admin.controller.js
+
+    // تغییر نام کاربری و/یا شماره موبایل ادمین جاری
+    static async updateMe(req, res, next) {
+        try {
+            const { username, mobile } = req.body || {};
+
+            if (!username && !mobile) {
+                return next(new AppError('لطفاً حداقل یکی از فیلدهای نام کاربری یا شماره موبایل را برای ویرایش وارد کنید.', 400));
+            }
+
+            const updateData = {};
+
+            // اعتبارسنجی نام کاربری در صورت ارسال
+            if (username) {
+                if (username.trim().length === 0) {
+                    return next(new AppError('نام کاربری نمی‌تواند خالی باشد.', 400));
+                }
+                updateData.username = username.trim();
+            }
+
+            // اعتبارسنجی شماره موبایل در صورت ارسال
+            if (mobile) {
+                const mobileRegex = /^09\d{9}$/;
+                if (!mobileRegex.test(mobile)) {
+                    return next(new AppError('شماره موبایل واردشده معتبر نیست (مثال: 09123456789).', 400));
+                }
+                updateData.mobile = mobile;
+            }
+
+            const updatedAdmin = await AdminService.updateAdmin(req.admin.id, updateData);
+
+            const { password: _, ...adminData } = updatedAdmin;
+
+            res.status(200).json({
+                status: 'success',
+                message: 'اطلاعات پروفایل با موفقیت بروزرسانی شد.',
+                data: { admin: adminData },
+            });
+        } catch (error) {
+            if (error.code === 'P2002') {
+                const targetField = error.meta?.target?.[0] === 'mobile' ? 'شماره موبایل' : 'نام کاربری';
+                return next(new AppError(`این ${targetField} قبلاً در سیستم ثبت شده است.`, 400));
+            }
+            next(error);
+        }
+    }
+
+    // تغییر رمز عبور ادمین جاری
+    static async changePassword(req, res, next) {
+        try {
+            const { currentPassword, newPassword } = req.body || {};
+
+            if (!currentPassword || !newPassword) {
+                return next(new AppError('لطفاً رمز عبور فعلی و رمز عبور جدید را وارد کنید.', 400));
+            }
+
+            if (newPassword.length < 6) {
+                return next(new AppError('رمز عبور جدید باید حداقل ۶ کاراکتر باشد.', 400));
+            }
+
+            // دریافت اطلاعات کامل ادمین (شامل هش رمز عبور)
+            const admin = await AdminService.findById(req.admin.id);
+            if (!admin) {
+                return next(new AppError('حساب کاربری یافت نشد.', 404));
+            }
+
+            // بررسی صحت رمز عبور فعلی
+            const isPasswordValid = await AdminService.verifyPassword(currentPassword, admin.password);
+            if (!isPasswordValid) {
+                return next(new AppError('رمز عبور فعلی نادرست است.', 401));
+            }
+
+            // بروزرسانی رمز عبور در دیتابیس (هشدارهای لازم باید در سرویس هندل شود)
+            await AdminService.updatePassword(admin.id, newPassword);
+
+            // صدور توکن جدید و بروزرسانی کوکی
+            const token = signToken(admin.id);
+            const cookieExpiresInHours = Number(process.env.JWT_COOKIE_EXPIRES_IN || env.JWT_COOKIE_EXPIRES_IN || 1);
+
+            res.cookie('jwt', token, {
+                maxAge: cookieExpiresInHours * 60 * 60 * 1000,
+                httpOnly: true,
+                secure: true,
+                sameSite: 'none',
+                partitioned: true,
+            });
+
+            res.status(200).json({
+                status: 'success',
+                message: 'رمز عبور با موفقیت تغییر یافت.',
+                token,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 
     static async deleteAdmin(req, res, next) {
         try {
             const { id } = req.params;
 
-            // جلوگیری از حذف حساب کاربری خود ادمین جاری
             if (req.admin.id === id) {
                 return next(new AppError('شما نمی‌توانید حساب کاربری جاری خود را حذف کنید.', 400));
             }
@@ -177,17 +268,16 @@ static async login(req, res, next) {
 
     static async logout(req, res, next) {
         try {
-            // ۱. ثبت زمان خروج در دیتابیس برای ادمین جاری
             if (req.admin?.id) {
                 await AdminService.updateLastLogout(req.admin.id);
             }
 
-            // ۲. پاک کردن کوکی در سمت کلاینت
             res.cookie('jwt', 'loggedout', {
                 expires: new Date(Date.now() + 10 * 1000),
                 httpOnly: true,
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
+                secure: true,
+                sameSite: 'none',
+                partitioned: true,
             });
 
             res.status(200).json({
