@@ -85,55 +85,57 @@ class AdminController {
     }
 
     // ۲. ورود ادمین (Login)
-    static async login(req, res, next) {
-        try {
-            const { username, password } = req.body || {};
+    // ۲. ورود ادمین (Login)
+static async login(req, res, next) {
+    try {
+        const { username, password } = req.body || {};
 
-            if (!username || !password) {
-                return next(new AppError('لطفاً نام کاربری و رمز عبور را وارد کنید.', 400));
-            }
-
-            // پیدا کردن ادمین بر اساس نام کاربری
-            const admin = await AdminService.findByUsername(username);
-
-            if (!admin) {
-                return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
-            }
-
-            // بررسی صحت رمز عبور
-            const isPasswordValid = await AdminService.verifyPassword(password, admin.password);
-
-            if (!isPasswordValid) {
-                return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
-            }
-
-            // صدور توکن JWT
-            const token = signToken(admin.id);
-
-            // 🟢 ۱. تنظیمات کوکی امن
-            const cookieOptions = {
-                expires: new Date(
-                    Date.now() + (env.JWT_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000
-                ),
-                httpOnly: true, // غیرقابل دسترسی از طریق JavaScript فرانت‌اند (جلوگیری از حملات XSS)
-                secure: process.env.NODE_ENV === 'production', // ارسال فقط روی HTTPS در محیط پروداکشن
-                sameSite: 'lax', // محافظت در برابر حملات CSRF
-            };
-
-            res.cookie('jwt', token, cookieOptions);
-
-            const { password: _, ...adminData } = admin;
-
-            res.status(200).json({
-                status: 'success',
-                message: 'با موفقیت وارد شدید.',
-                token, // ارسال توکن در Response Body اختیاری است
-                data: { admin: adminData },
-            });
-        } catch (error) {
-            next(error);
+        if (!username || !password) {
+            return next(new AppError('لطفاً نام کاربری و رمز عبور را وارد کنید.', 400));
         }
+
+        // پیدا کردن ادمین بر اساس نام کاربری
+        const admin = await AdminService.findByUsername(username);
+
+        if (!admin) {
+            return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
+        }
+
+        // بررسی صحت رمز عبور
+        const isPasswordValid = await AdminService.verifyPassword(password, admin.password);
+
+        if (!isPasswordValid) {
+            return next(new AppError('نام کاربری یا رمز عبور اشتباه است.', 401));
+        }
+
+        // 🟢 ۱. ساخت متغیر token (این خط حتماً باید اینجا باشد)
+        const token = signToken(admin.id);
+
+        // 🟢 ۲. تنظیمات کوکی بر اساس env
+        const cookieExpiresInHours = Number(process.env.JWT_COOKIE_EXPIRES_IN || env.JWT_COOKIE_EXPIRES_IN || 1);
+
+        const cookieOptions = {
+            maxAge: cookieExpiresInHours * 60 * 60 * 1000, // تبدیل ساعت به میلی‌ثانیه
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+        };
+
+        // 🟢 ۳. ست کردن کوکی با استفاده از متغیر token
+        res.cookie('jwt', token, cookieOptions);
+
+        const { password: _, ...adminData } = admin;
+
+        res.status(200).json({
+            status: 'success',
+            message: 'با موفقیت وارد شدید.',
+            token, // ارسال توکن در پاسخ
+            data: { admin: adminData },
+        });
+    } catch (error) {
+        next(error);
     }
+}
     // ۳. دریافت اطلاعات ادمین جاری (پروفایل)
     static async getMe(req, res, next) {
         try {

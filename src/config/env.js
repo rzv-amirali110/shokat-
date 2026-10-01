@@ -21,7 +21,8 @@ module.exports = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     DATABASE_URL: process.env.DATABASE_URL,
     JWT_SECRET: process.env.JWT_SECRET,
-    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
+    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '1h',
+    JWT_COOKIE_EXPIRES_IN_HOURS: Number(process.env.JWT_COOKIE_EXPIRES_IN_HOURS || 1),
     UPLOAD_DIR: process.env.UPLOAD_DIR || 'uploads',
     MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB) || 0.75,
     ALLOWED_MIME_TYPES: process.env.ALLOWED_MIME_TYPES
