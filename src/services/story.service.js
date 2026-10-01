@@ -42,6 +42,27 @@ class StoryService {
 
     // ۵. حذف داستان
     static async delete(id) {
+        // ۱. پیدا کردن داستان برای دریافت آدرس عکس
+        const story = await prisma.story.findUnique({
+            where: { id },
+        });
+
+        if (!story) {
+            throw new Error('داستان مورد نظر یافت نشد.');
+        }
+
+        // ۲. حذف فایل تصویر در صورت وجود
+        if (story.imageUrl) {
+            // تبدیل لینک/مسیر نسبی به مسیر مطلق روی سرور
+            const filePath = path.join(__dirname, '..', story.imageUrl);
+
+            // بررسی وجود فایل و حذف آن
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+
+        // ۳. حذف رکورد از دیتابیس
         return await prisma.story.delete({
             where: { id },
         });
