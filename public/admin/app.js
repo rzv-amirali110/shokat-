@@ -1,4 +1,5 @@
-// اسکریپت اصلی مدیریت پنل ادمین
+// اسکریپت اصلی مدیریت پنل ادمین (شوکت نیوز)
+
 document.head.insertAdjacentHTML("beforeend", `<style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -10,7 +11,7 @@ const API_BASE_URL = `${SERVER_URL}/api`;
 
 let submissions = [];
 let admins = [];
-let currentAdminUser = null; 
+let currentAdminUser = null;
 let currentFilter = 'ALL';
 let searchQuery = '';
 let isLoggedIn = false;
@@ -35,6 +36,40 @@ function getImageUrl(imagePath) {
     return `${SERVER_URL}${cleanPath}`;
 }
 
+// جلوگیری از آسیب‌پذیری XSS
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, match => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[match]));
+}
+
+// تابع دریافت و تبدیل عکس به ArrayBuffer جهت استفاده در docx.js
+async function fetchImageAsBuffer(url) {
+    if (!url) return null;
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include'
+        });
+        
+        if (!response.ok) {
+            console.warn(`خطا در دریافت تصویر: status ${response.status}`);
+            return null;
+        }
+        
+        return await response.arrayBuffer();
+    } catch (error) {
+        console.error('خطای CORS در دریافت تصویر برای ورد:', error);
+        return null;
+    }
+}
+
 // ==========================================
 // ۱. احراز هویت و مدیریت نشست (Auth)
 // ==========================================
@@ -43,12 +78,12 @@ async function checkAuth() {
     try {
         const res = await fetch(`${API_BASE_URL}/admin/me`, {
             method: 'GET',
-            credentials: 'include' // ارسال کوکی HTTP-Only
+            credentials: 'include'
         });
 
         if (res.ok) {
             const result = await res.json();
-            currentAdminUser = result.data?.admin || null;
+            currentAdminUser = result.data?.admin || result.admin || null;
 
             isLoggedIn = true;
             document.getElementById('login-screen')?.classList.add('hidden');
@@ -57,7 +92,7 @@ async function checkAuth() {
 
             const badgeElem = document.getElementById('current-user-badge');
             if (badgeElem && currentAdminUser) {
-                badgeElem.innerText = currentAdminUser.username;
+                badgeElem.innerText = currentAdminUser.username || 'مدیر ارشد';
             }
 
             fetchSubmissions();
@@ -80,7 +115,7 @@ function showLoginScreen() {
 }
 
 async function handleLogin(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const usernameInput = document.getElementById('admin-username')?.value.trim();
     const passwordInput = document.getElementById('admin-password')?.value;
 
@@ -131,6 +166,12 @@ async function handleLogout() {
 async function fetchAdmins() {
     try {
         const res = await fetch(`${API_BASE_URL}/admin`, { credentials: 'include' });
+
+        if (res.status === 401) {
+            showLoginScreen();
+            return;
+        }
+
         if (res.ok) {
             const result = await res.json();
             admins = result.data?.admins || result.admins || [];
@@ -149,16 +190,16 @@ function renderAdmins() {
     admins.forEach(admin => {
         const tr = document.createElement('tr');
         tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
-        
+
         const adminId = admin.id || admin._id;
         const isSelf = currentAdminUser && (currentAdminUser.id === adminId || currentAdminUser._id === adminId);
 
         tr.innerHTML = `
             <td class="p-2 sm:p-3 text-white font-medium">
-                ${admin.username}
+                ${escapeHTML(admin.username)}
                 ${isSelf ? '<span class="mr-2 text-[10px] text-amber-400 font-normal">(شما)</span>' : ''}
             </td>
-            <td class="p-2 sm:p-3 text-gray-300 font-mono text-xs dir-ltr text-right">${admin.mobile || '-'}</td>
+            <td class="p-2 sm:p-3 text-gray-300 font-mono text-xs dir-ltr text-right">${escapeHTML(admin.mobile || '-')}</td>
             <td class="p-2 sm:p-3 text-gray-400 hidden sm:table-cell text-[10px]">
                 ${admin.createdAt ? new Date(admin.createdAt).toLocaleDateString('fa-IR') : '-'}
             </td>
@@ -174,7 +215,6 @@ function renderAdmins() {
     });
 }
 
-// ایجاد ادمین جدید (مطابق با متد register در کنترلر)
 async function handleCreateAdmin(e) {
     if (e) e.preventDefault();
 
@@ -222,7 +262,6 @@ async function handleCreateAdmin(e) {
 }
 const handleAddAdmin = handleCreateAdmin;
 
-// حذف ادمین (مطابق با متد deleteAdmin در کنترلر)
 async function deleteAdmin(id) {
     if (currentAdminUser && (currentAdminUser.id === id || currentAdminUser._id === id)) {
         showToast('شما نمی‌توانید حساب کاربری جاری خود را حذف کنید.', 'error');
@@ -261,17 +300,22 @@ async function fetchSubmissions() {
             fetch(`${API_BASE_URL}/stories`, { credentials: 'include' })
         ]);
 
+        if (demandsRes.status === 401 || storiesRes.status === 401) {
+            showLoginScreen();
+            return;
+        }
+
         let combinedData = [];
 
         if (demandsRes.ok) {
             const demandsJson = await demandsRes.json();
-            const demandsList = demandsJson.data?.items || demandsJson.items || [];
+            const demandsList = demandsJson.data?.items || demandsJson.items || (Array.isArray(demandsJson) ? demandsJson : []);
             combinedData.push(...demandsList.map(item => ({ ...item, resourceType: 'demands' })));
         }
 
         if (storiesRes.ok) {
             const storiesJson = await storiesRes.json();
-            const storiesList = storiesJson.data?.items || storiesJson.items || [];
+            const storiesList = storiesJson.data?.items || storiesJson.items || (Array.isArray(storiesJson) ? storiesJson : []);
             combinedData.push(...storiesList.map(item => ({ ...item, resourceType: 'stories' })));
         }
 
@@ -304,7 +348,7 @@ function renderSubmissions() {
 
     if (searchQuery.trim() !== '') {
         const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(item => 
+        filtered = filtered.filter(item =>
             (item.title && item.title.toLowerCase().includes(q)) ||
             (item.description && item.description.toLowerCase().includes(q))
         );
@@ -319,7 +363,7 @@ function renderSubmissions() {
     filtered.forEach((item, index) => {
         const tr = document.createElement('tr');
         tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors block md:table-row p-3 md:p-0 mb-3 md:mb-0 rounded-xl bg-white/5 md:bg-transparent";
-        
+
         const fullImgUrl = getImageUrl(item.imageUrl);
         const itemId = String(item._id || item.id);
         const isExported = exportedIds.includes(itemId);
@@ -332,7 +376,7 @@ function renderSubmissions() {
                 </span>
             </td>
             <td class="p-2 md:p-4 font-semibold text-white max-w-xs truncate">
-                ${item.title || 'بدون عنوان'}
+                ${escapeHTML(item.title || 'بدون عنوان')}
                 ${fullImgUrl ? '<i class="fa-solid fa-paperclip text-amber-400 mr-2" title="دارای تصویر"></i>' : ''}
             </td>
             <td class="p-2 md:p-4 text-center">
@@ -341,9 +385,13 @@ function renderSubmissions() {
                         ${getStatusText(item.status)}
                     </span>
                     ${isExported ? `
-                        <span class="px-2 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 border border-sky-500/30" title="خروجی Word گرفته شده">
-                            <i class="fa-solid fa-file-word ml-1"></i>خروجی گرفته‌شده
-                        </span>
+                        <button onclick="toggleExportStatus('${itemId}')" 
+                                class="px-2 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30 transition-all cursor-pointer flex items-center gap-1" 
+                                title="برای لغو خروجی گرفته‌شده کلیک کنید">
+                            <i class="fa-solid fa-file-word"></i>
+                            <span>خروجی گرفته‌شده</span>
+                            <i class="fa-solid fa-xmark text-[9px] mr-0.5"></i>
+                        </button>
                     ` : ''}
                 </div>
             </td>
@@ -390,7 +438,7 @@ async function updateItemStatus(id, resourceType, newStatus) {
 
         if (res.ok) {
             showToast(`وضعیت با موفقیت به «${getStatusText(newStatus)}» تغییر یافت.`, 'success');
-            
+
             const item = submissions.find(s => String(s._id || s.id) === String(id));
             if (item) item.status = newStatus;
 
@@ -425,8 +473,8 @@ function getStatusText(status) {
 }
 
 function updateStats() {
-    const unexportedDemands = submissions.filter(s => s.resourceType === 'demands' && s.status === 'APPROVED' && !exportedIds.includes(String(s._id || s.id))).length;
-    const unexportedStories = submissions.filter(s => s.resourceType === 'stories' && s.status === 'APPROVED' && !exportedIds.includes(String(s._id || s.id))).length;
+    const unexportedDemands = submissions.filter(s => s.resourceType === 'demands' && !exportedIds.includes(String(s._id || s.id))).length;
+    const unexportedStories = submissions.filter(s => s.resourceType === 'stories' && !exportedIds.includes(String(s._id || s.id))).length;
     const pendingCount = submissions.filter(s => s.status === 'PENDING').length;
     const totalExportedCount = submissions.filter(s => exportedIds.includes(String(s._id || s.id))).length;
 
@@ -437,7 +485,132 @@ function updateStats() {
 }
 
 // ==========================================
-// ۴. مدیریت مدال‌ها و خروجی Word
+// ۴. خروجی دسته‌ای فایل Word به همراه تصاویر با docx.js
+// ==========================================
+
+async function exportBatchToWord(resourceType) {
+    const docxLib = window.docx;
+    if (!docxLib) {
+        showToast('کتابخانه docx.js یافت نشد. لطفاً صفحه را رفرش کنید.', 'error');
+        return;
+    }
+
+    const pendingExportItems = submissions.filter(s =>
+        s.resourceType === resourceType &&
+        !exportedIds.includes(String(s._id || s.id))
+    ).slice(0, 50);
+
+    if (pendingExportItems.length === 0) {
+        showToast('هیچ پیام خروجی‌نگرفته‌ای برای این بخش وجود ندارد.', 'info');
+        return;
+    }
+
+    showToast('در حال آماده‌سازی فایل ورد و بارگذاری تصاویر...', 'info');
+
+    try {
+        const { Document, Packer, Paragraph, TextRun, ImageRun, HeadingLevel, AlignmentType } = docxLib;
+
+        const children = [
+            new Paragraph({
+                text: `گزارش دسته‌ای ${resourceType === 'demands' ? 'مطالبات' : 'خاطرات'} - شوکت نیوز`,
+                heading: HeadingLevel.HEADING_1,
+                alignment: AlignmentType.RIGHT,
+                bidirectional: true
+            })
+        ];
+
+        for (let idx = 0; idx < pendingExportItems.length; idx++) {
+            const item = pendingExportItems[idx];
+            const itemId = String(item._id || item.id);
+            const fullImgUrl = getImageUrl(item.imageUrl);
+
+            // عنوان پیام
+            children.push(
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: `\n#${idx + 1} - ${item.title || 'بدون عنوان'} (${getStatusText(item.status)})`,
+                            bold: true,
+                            size: 28
+                        })
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                    bidirectional: true
+                }),
+                // متن پیام
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: item.description || 'بدون متن',
+                            size: 24
+                        })
+                    ],
+                    alignment: AlignmentType.RIGHT,
+                    bidirectional: true
+                })
+            );
+
+            // در داخل حلقه for...of تابع exportBatchToWord:
+            if (fullImgUrl) {
+                try {
+                    const imgBuffer = await fetchImageAsBuffer(fullImgUrl);
+                    if (imgBuffer) {
+                        children.push(
+                            new Paragraph({
+                                children: [
+                                    new ImageRun({
+                                        data: imgBuffer,
+                                        transformation: {
+                                            width: 320,
+                                            height: 220,
+                                        },
+                                    })
+                                ],
+                                alignment: AlignmentType.CENTER,
+                                space: { before: 150, after: 150 }
+                            })
+                        );
+                    }
+                } catch (imgErr) {
+                    console.error('خطا در درج تصویر در سند:', imgErr);
+                }
+            }
+
+            if (!exportedIds.includes(itemId)) {
+                exportedIds.push(itemId);
+            }
+        }
+
+        const doc = new Document({
+            sections: [{ children }]
+        });
+
+        const blob = await Packer.toBlob(doc);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${resourceType}-export-${Date.now()}.docx`;
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 200);
+
+        saveExportedIds();
+        updateStats();
+        renderSubmissions();
+        showToast(`${pendingExportItems.length} پیام (به همراه تصویر) با موفقیت خروجی داده شد.`, 'success');
+
+    } catch (err) {
+        console.error('خطا در خروجی فایل Word:', err);
+        showToast('خطا در تولید فایل Word: ' + (err.message || ''), 'error');
+    }
+}
+
+// ==========================================
+// ۵. مدیریت مدال‌ها و لغو وضعیت خروجی
 // ==========================================
 
 function openDetailModal(id, resourceType) {
@@ -450,6 +623,21 @@ function openDetailModal(id, resourceType) {
     document.getElementById('detail-text').innerText = item.description || '';
     document.getElementById('detail-date').innerText = item.createdAt ? new Date(item.createdAt).toLocaleDateString('fa-IR') : '-';
     document.getElementById('detail-id').innerText = `ID: ${itemId}`;
+
+    const senderElem = document.getElementById('detail-sender');
+    if (senderElem) {
+        senderElem.innerText = `فرستنده: ${item.senderName || item.mobile || 'ناشناس'}`;
+    }
+
+    const exportStatusElem = document.getElementById('detail-export-status');
+    if (exportStatusElem) {
+        const isExported = exportedIds.includes(itemId);
+        exportStatusElem.innerHTML = `
+            <button onclick="toggleExportStatus('${itemId}')" class="hover:underline cursor-pointer">
+                وضعیت خروجی: ${isExported ? '<span class="text-sky-400 font-bold">گرفته‌شده (برای لغو کلیک کنید)</span>' : '<span class="text-gray-400">گرفته‌نشده</span>'}
+            </button>
+        `;
+    }
 
     const categoryBadge = document.getElementById('detail-category-badge');
     if (categoryBadge) categoryBadge.innerText = item.resourceType === 'demands' ? 'مطالبه' : 'خاطره';
@@ -483,9 +671,9 @@ function setActiveModalStatusButtons(status) {
     const btnRejected = document.getElementById('modal-btn-reject');
     const btnPending = document.getElementById('modal-btn-pending');
 
-    if (btnApproved) btnApproved.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all ${status === 'APPROVED' ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40'}`;
-    if (btnRejected) btnRejected.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all ${status === 'REJECTED' ? 'bg-rose-600 text-white ring-2 ring-rose-400' : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/40'}`;
-    if (btnPending) btnPending.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all ${status === 'PENDING' ? 'bg-amber-600 text-white ring-2 ring-amber-400' : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/40'}`;
+    if (btnApproved) btnApproved.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${status === 'APPROVED' ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/40'}`;
+    if (btnRejected) btnRejected.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${status === 'REJECTED' ? 'bg-rose-600 text-white ring-2 ring-rose-400' : 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/40'}`;
+    if (btnPending) btnPending.className = `px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${status === 'PENDING' ? 'bg-amber-600 text-white ring-2 ring-amber-400' : 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/40'}`;
 }
 
 function changeModalItemStatus(newStatus) {
@@ -533,6 +721,42 @@ function closeAdminModal() {
     setTimeout(() => modal.classList.add('hidden'), 300);
 }
 
+function togglePasswordVisibility() {
+    const input = document.getElementById('admin-password');
+    const icon = document.getElementById('pass-eye-icon');
+    if (!input || !icon) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+function openFullPhoto() {
+    const detailImg = document.getElementById('detail-image');
+    const lightbox = document.getElementById('photo-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+
+    if (detailImg && lightbox && lightboxImg) {
+        lightboxImg.src = detailImg.src;
+        lightbox.classList.remove('hidden');
+    }
+}
+
+function closeFullPhoto() {
+    document.getElementById('photo-lightbox')?.classList.add('hidden');
+}
+
+function toggleMobileMenu() {
+    const actions = document.getElementById('header-actions');
+    if (actions) {
+        actions.classList.toggle('hidden');
+    }
+}
+
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -542,7 +766,7 @@ function showToast(message, type = 'info') {
 
     toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg text-xs font-semibold flex items-center justify-between transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
     toast.innerHTML = `
-        <span>${message}</span>
+        <span>${escapeHTML(message)}</span>
         <button onclick="this.parentElement.remove()" class="mr-2 text-white/80 hover:text-white cursor-pointer">&times;</button>
     `;
 
@@ -552,4 +776,34 @@ function showToast(message, type = 'info') {
         toast.classList.add('opacity-0');
         setTimeout(() => toast.remove(), 300);
     }, 4000);
+}
+
+// لغو یا تغییر وضعیت خروجی گرفته‌شده برای یک پیام
+function toggleExportStatus(id) {
+    const itemId = String(id);
+    const index = exportedIds.indexOf(itemId);
+
+    if (index !== -1) {
+        // حذف از لیست خروجی‌گرفته‌شده‌ها
+        exportedIds.splice(index, 1);
+        showToast('پیام از حالت خروجی‌گرفته‌شده خارج شد و مجدداً آماده دانلود است.', 'info');
+    } else {
+        // اضافه کردن به لیست خروجی‌گرفته‌شده‌ها
+        exportedIds.push(itemId);
+        showToast('پیام به عنوان خروجی‌گرفته‌شده نشانه‌گذاری شد.', 'success');
+    }
+
+    saveExportedIds();
+    updateStats();
+    renderSubmissions();
+
+    const exportStatusElem = document.getElementById('detail-export-status');
+    if (exportStatusElem) {
+        const isExported = exportedIds.includes(itemId);
+        exportStatusElem.innerHTML = `
+            <button onclick="toggleExportStatus('${itemId}')" class="hover:underline cursor-pointer">
+                وضعیت خروجی: ${isExported ? '<span class="text-sky-400 font-bold">گرفته‌شده (برای لغو کلیک کنید)</span>' : '<span class="text-gray-400">گرفته‌نشده</span>'}
+            </button>
+        `;
+    }
 }

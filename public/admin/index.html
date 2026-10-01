@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>شوکت نیوز | پنل مدیریت و خروجی اسناد</title>
-
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <link rel="icon" type="image/png" href="../logo.png"> 
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -121,7 +121,7 @@
                 <div class="flex items-center gap-3 sm:gap-4">
                     <div
                         class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-brand-dark border border-brand-orange/40 orange-glow shrink-0">
-                    <img src="../logo.png" />
+                        <img src="../logo.png" />
 
                     </div>
                     <div>
@@ -409,71 +409,77 @@
             </div>
 
             <!-- فرم ثبت ادمین جدید -->
-<!-- فرم ثبت ادمین جدید -->
-<form id="add-admin-form" onsubmit="handleCreateAdmin(event)"
-    class="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-    <h4 class="text-[11px] sm:text-xs font-bold text-brand-orange flex items-center gap-2 mb-2">
-        <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-        افزودن ادمین جدید
-    </h4>
+            <!-- فرم ثبت ادمین جدید -->
+            <form id="add-admin-form" onsubmit="handleCreateAdmin(event)"
+                class="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+                <h4 class="text-[11px] sm:text-xs font-bold text-brand-orange flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                    افزودن ادمین جدید
+                </h4>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div>
-            <label for="new-admin-username" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">نام کاربری (Username)</label>
-            <input type="text" id="new-admin-username" name="username" placeholder="مثلاً: m_hosseini" required
-                class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange">
-        </div>
-        <div>
-            <label for="new-admin-mobile" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">شماره موبایل</label>
-            <input type="text" id="new-admin-mobile" name="mobile" placeholder="09123456789" required dir="ltr"
-                class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange text-left">
-        </div>
-        <div>
-            <label for="new-admin-password" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">رمز عبور</label>
-            <input type="password" id="new-admin-password" name="password" placeholder="حداقل ۶ کاراکتر" required
-                class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange">
-        </div>
-    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div>
+                        <label for="new-admin-username" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">نام
+                            کاربری (Username)</label>
+                        <input type="text" id="new-admin-username" name="username" placeholder="مثلاً: m_hosseini"
+                            required
+                            class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange">
+                    </div>
+                    <div>
+                        <label for="new-admin-mobile" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">شماره
+                            موبایل</label>
+                        <input type="text" id="new-admin-mobile" name="mobile" placeholder="09123456789" required
+                            dir="ltr"
+                            class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange text-left">
+                    </div>
+                    <div>
+                        <label for="new-admin-password" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">رمز
+                            عبور</label>
+                        <input type="password" id="new-admin-password" name="password" placeholder="حداقل ۶ کاراکتر"
+                            required
+                            class="w-full bg-white/5 border border-white/15 rounded-lg sm:rounded-xl px-3 py-2 sm:py-2.5 text-[11px] sm:text-xs text-white focus:outline-none focus:border-brand-orange">
+                    </div>
+                </div>
 
-    <div class="pt-2 flex justify-end">
-        <button type="submit"
-            class="w-full sm:w-auto px-5 py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-[11px] sm:text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            <span>ثبت مدیر جدید</span>
-        </button>
-    </div>
-</form>
+                <div class="pt-2 flex justify-end">
+                    <button type="submit"
+                        class="w-full sm:w-auto px-5 py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-[11px] sm:text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        <span>ثبت مدیر جدید</span>
+                    </button>
+                </div>
+            </form>
 
-<!-- جدول لیست مدیران فعال -->
-<div>
-    <h4 class="text-[11px] sm:text-xs font-bold text-gray-300 mb-2 sm:mb-3 flex items-center gap-2">
-        <i class="fa-solid fa-users text-amber-400" aria-hidden="true"></i>
-        لیست مدیران
-    </h4>
-    <div class="overflow-x-auto rounded-xl border border-white/5 bg-black/20">
-        <table class="w-full min-w-[400px] text-right border-collapse text-[10px] sm:text-xs">
-            <thead>
-                <tr class="border-b border-white/10 text-gray-400 font-medium bg-white/5">
-                    <th scope="col" class="p-2 sm:p-3">نام کاربری</th>
-                    <th scope="col" class="p-2 sm:p-3">شماره موبایل</th>
-                    <th scope="col" class="p-2 sm:p-3 hidden sm:table-cell">تاریخ ایجاد</th>
-                    <th scope="col" class="p-2 sm:p-3 text-center w-20">عملیات</th>
-                </tr>
-            </thead>
-            <tbody id="admins-table-body" class="divide-y divide-white/5">
-                <!-- به صورت پویا توسط JS پر می‌شود -->
-            </tbody>
-        </table>
-    </div>
-</div>
+            <!-- جدول لیست مدیران فعال -->
+            <div>
+                <h4 class="text-[11px] sm:text-xs font-bold text-gray-300 mb-2 sm:mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-users text-amber-400" aria-hidden="true"></i>
+                    لیست مدیران
+                </h4>
+                <div class="overflow-x-auto rounded-xl border border-white/5 bg-black/20">
+                    <table class="w-full min-w-[400px] text-right border-collapse text-[10px] sm:text-xs">
+                        <thead>
+                            <tr class="border-b border-white/10 text-gray-400 font-medium bg-white/5">
+                                <th scope="col" class="p-2 sm:p-3">نام کاربری</th>
+                                <th scope="col" class="p-2 sm:p-3">شماره موبایل</th>
+                                <th scope="col" class="p-2 sm:p-3 hidden sm:table-cell">تاریخ ایجاد</th>
+                                <th scope="col" class="p-2 sm:p-3 text-center w-20">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admins-table-body" class="divide-y divide-white/5">
+                            <!-- به صورت پویا توسط JS پر می‌شود -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <!-- کانتینر پیام‌های Toast -->
-    <div id="toast-container"
-        class="fixed bottom-4 left-4 right-4 sm:bottom-6 sm:right-6 sm:left-auto sm:w-80 z-50 flex flex-col gap-2 sm:gap-3 pointer-events-none">
-    </div>
+            <!-- کانتینر پیام‌های Toast -->
+            <div id="toast-container"
+                class="fixed bottom-4 left-4 right-4 sm:bottom-6 sm:right-6 sm:left-auto sm:w-80 z-50 flex flex-col gap-2 sm:gap-3 pointer-events-none">
+            </div>
 
-    <!-- اسکریپت منطقی برنامه -->
-    <script src="./app.js"></script>
+            <!-- اسکریپت منطقی برنامه -->
+            <script src="./app.js"></script>
 </body>
 
 </html>

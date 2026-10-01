@@ -5,14 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>شوکت نیوز | سامانه ثبت مطالبات، خاطرات و ارتباطات دانشجویی</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./logo.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Vazirmatn Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap">
-    <link href="./css/style.css"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="./css/style.css" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -41,7 +42,7 @@
 </head>
 
 <body
-    class="min-h-screen text-gray-100 doodle-bg flex flex-col justify-between relative overflow-x-hidden selection:bg-brand-orange selection:text-white">
+    class="min-h-screen text-gray-100 doodle-bg flex flex-col justify-between relative overflow-x-hidden selection:bg-brand-orange selection:text-white font-vazir">
 
     <!-- Ambient Gradient Background Glows -->
     <div class="fixed top-10 right-10 w-96 h-96 bg-brand-orange/20 rounded-full blur-3xl pointer-events-none -z-10">
@@ -54,14 +55,13 @@
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <!-- Brand Logo & Title -->
             <div class="flex items-center gap-4">
-                <!-- SVG Logo inspired by photo_2026-09-28_19-16-27.jpg -->
                 <div
-                    class="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center orange-glow rounded-full bg-brand-dark border border-brand-orange/40">
-                    <img src="./logo.png" />
+                    class="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center orange-glow rounded-full bg-brand-dark border border-brand-orange/40 overflow-hidden">
+                    <img src="./logo.png" alt="لوگو شوکت نیوز" class="w-full h-full object-cover" />
                 </div>
                 <div>
                     <h1
-                        class="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-l from-amber-300 via-brand-orange to-orange-500 tracking-tight">
+                        class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-amber-300 via-brand-orange to-orange-500 tracking-tight">
                         شوکت نیوز
                     </h1>
                     <p class="text-xs sm:text-sm text-gray-300 font-light mt-0.5">
@@ -73,7 +73,7 @@
             <!-- Header Quick Badge -->
             <div class="hidden md:flex items-center gap-3">
                 <span
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-brand-orange/20 text-brand-orange border border-brand-orange/30">
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-black bg-brand-orange/20 text-brand-orange border border-brand-orange/30">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     سامانه فعال است
                 </span>
@@ -87,7 +87,7 @@
         <!-- Welcome Banner -->
         <div class="text-center mb-12">
             <span
-                class="inline-block px-4 py-1.5 mb-4 text-xs sm:text-sm font-semibold rounded-full bg-white/10 text-amber-300 border border-white/10 backdrop-blur-md">
+                class="inline-block px-4 py-1.5 mb-4 text-xs sm:text-sm font-black rounded-full bg-white/10 text-amber-300 border border-white/10 backdrop-blur-md">
                 🎓 تریبون آزاد و مستقل دانشگاه
             </span>
             <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight mb-4">
@@ -114,7 +114,7 @@
                         <i class="fa-solid font-black fa-bullhorn"></i>
                     </div>
                     <h3
-                        class="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-brand-orange transition-colors">
+                        class="text-xl sm:text-2xl font-black text-white mb-3 group-hover:text-brand-orange transition-colors">
                         ثبت مطالبات و دغدغه‌ها
                     </h3>
                     <p class="text-gray-300 text-xs sm:text-sm leading-relaxed mb-6">
@@ -124,7 +124,7 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-white/10">
-                    <span class="text-xs text-brand-orange font-semibold">ثبت مستقیم دغدغه</span>
+                    <span class="text-xs text-brand-orange font-black">ثبت مستقیم دغدغه</span>
                     <span
                         class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-brand-orange group-hover:translate-x-1 transition-all">
                         <i class="fa-solid fa-arrow-left text-xs"></i>
@@ -145,7 +145,7 @@
                         <i class="fa-solid fa-book-bookmark"></i>
                     </div>
                     <h3
-                        class="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-amber-400 transition-colors">
+                        class="text-xl sm:text-2xl font-black text-white mb-3 group-hover:text-amber-400 transition-colors">
                         ثبت خاطرات و تجربه‌ها
                     </h3>
                     <p class="text-gray-300 text-xs sm:text-sm leading-relaxed mb-6">
@@ -155,7 +155,7 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-white/10">
-                    <span class="text-xs text-amber-400 font-semibold">اشتراک‌گذاری خاطره</span>
+                    <span class="text-xs text-amber-400 font-black">اشتراک‌گذاری خاطره</span>
                     <span
                         class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-amber-400 group-hover:translate-x-1 transition-all">
                         <i class="fa-solid fa-arrow-left text-xs"></i>
@@ -167,61 +167,62 @@
 
         <!-- Official Showkat News Channels Quick Links -->
         <div class="glass-card rounded-3xl p-6 sm:p-8 mb-12">
-    <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
-        <!-- Text Content -->
-        <div>
-            <h4 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-paper-plane text-brand-orange"></i>
-                عضویت در کانال‌های رسمی شوکت نیوز
-            </h4>
-            <p class="text-xs sm:text-sm text-gray-300 mt-1">
-                برای پیگیری اخبار دانشگاه، مصوبه‌ها و پاسخ مسئولین به کانال‌های ما بپیوندید.
-            </p>
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+                <!-- Text Content -->
+                <div>
+                    <h4 class="text-lg font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-brand-orange"></i>
+                        عضویت در کانال‌های رسمی شوکت نیوز
+                    </h4>
+                    <p class="text-xs sm:text-sm text-gray-300 mt-1">
+                        برای پیگیری اخبار دانشگاه، مصوبه‌ها و پاسخ مسئولین به کانال‌های ما بپیوندید.
+                    </p>
+                </div>
+
+                <!-- 2x2 Grid Layout -->
+                <div class="grid grid-cols-2 gap-3 w-full lg:w-auto min-w-[280px] sm:min-w-[340px]">
+                    <!-- Eitaa Button -->
+                    <a href="https://eitaa.com/shokat_news" target="_blank" rel="noopener noreferrer"
+                        class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-500/30 transition-all font-black text-xs sm:text-sm group">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0 group-hover:scale-150 transition-transform"></span>
+                        <span>ایتا (Eitaa)</span>
+                    </a>
+
+                    <!-- Rubika Button -->
+                    <a href="https://rubika.ir/shokat_news" target="_blank" rel="noopener noreferrer"
+                        class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 transition-all font-black text-xs sm:text-sm group">
+                        <span class="w-2 h-2 rounded-full bg-purple-400 shrink-0 group-hover:scale-150 transition-transform"></span>
+                        <span>روبیکا (Rubika)</span>
+                    </a>
+
+                    <!-- Telegram Button -->
+                    <a href="https://t.me/shokat_news" target="_blank" rel="noopener noreferrer"
+                        class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-sky-600/20 hover:bg-sky-600/40 text-sky-300 border border-sky-500/30 transition-all font-black text-xs sm:text-sm group">
+                        <i class="fa-brands fa-telegram text-base shrink-0 group-hover:scale-110 transition-transform"></i>
+                        <span>تلگرام (Telegram)</span>
+                    </a>
+
+                    <!-- Instagram Button -->
+                    <a href="https://www.instagram.com/shokat_news?stkn=MTRlbWtiYjMxZHVicQ==" target="_blank" rel="noopener noreferrer"
+                        class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-pink-600/20 hover:bg-pink-600/40 text-pink-300 border border-pink-500/30 transition-all font-black text-xs sm:text-sm group">
+                        <i class="fa-brands fa-instagram text-base shrink-0 group-hover:scale-110 transition-transform"></i>
+                        <span>اینستاگرام</span>
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <!-- 2x2 Grid Layout -->
-        <div class="grid grid-cols-2 gap-3 w-full lg:w-auto min-w-[280px] sm:min-w-[340px]">
-            <!-- Eitaa Button -->
-            <a href="https://eitaa.com" target="_blank" rel="noopener noreferrer"
-                class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-amber-600/20 hover:bg-amber-600/40 text-amber-300 border border-amber-500/30 transition-all font-semibold text-xs sm:text-sm group">
-                <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0 group-hover:scale-150 transition-transform"></span>
-                <span>ایتا (Eitaa)</span>
-            </a>
-
-            <!-- Rubika Button -->
-            <a href="https://rubika.ir" target="_blank" rel="noopener noreferrer"
-                class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 transition-all font-semibold text-xs sm:text-sm group">
-                <span class="w-2 h-2 rounded-full bg-purple-400 shrink-0 group-hover:scale-150 transition-transform"></span>
-                <span>روبیکا (Rubika)</span>
-            </a>
-
-            <!-- Telegram Button -->
-            <a href="https://telegram.org" target="_blank" rel="noopener noreferrer"
-                class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-sky-600/20 hover:bg-sky-600/40 text-sky-300 border border-sky-500/30 transition-all font-semibold text-xs sm:text-sm group">
-                <i class="fa-brands fa-telegram text-base shrink-0 group-hover:scale-110 transition-transform"></i>
-                <span>تلگرام (Telegram)</span>
-            </a>
-
-            <!-- Instagram Button -->
-            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
-                class="flex items-center justify-center gap-2.5 px-4 py-3 rounded-2xl bg-pink-600/20 hover:bg-pink-600/40 text-pink-300 border border-pink-500/30 transition-all font-semibold text-xs sm:text-sm group">
-                <i class="fa-brands fa-instagram text-base shrink-0 group-hover:scale-110 transition-transform"></i>
-                <span>اینستاگرام</span>
-            </a>
-        </div>
-    </div>
-</div>
         <!-- Live Submission Counter Stats Bar -->
         <div class="grid grid-cols-2 gap-4 text-center">
             <div class="glass-card rounded-2xl p-4">
-                <span class="block text-xl sm:text-3xl font-extrabold text-brand-orange mb-1"
+                <span class="block text-xl sm:text-3xl font-black text-brand-orange mb-1"
                     id="counter-demands">۱۴۲</span>
-                <span class="text-xs text-gray-300">مطالبه ثبت‌شده</span>
+                <span class="text-xs text-gray-300 font-medium">مطالبه ثبت‌شده</span>
             </div>
             <div class="glass-card rounded-2xl p-4">
-                <span class="block text-xl sm:text-3xl font-extrabold text-amber-400 mb-1"
+                <span class="block text-xl sm:text-3xl font-black text-amber-400 mb-1"
                     id="counter-stories">۸۹</span>
-                <span class="text-xs text-gray-300">خاطره ماندگار</span>
+                <span class="text-xs text-gray-300 font-medium">خاطره ماندگار</span>
             </div>
         </div>
 
@@ -250,7 +251,7 @@
 
             <!-- Close Button -->
             <button onclick="closeModal()"
-                class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 hover:bg-red-500/80 text-gray-300 hover:text-white flex items-center justify-center transition-all">
+                class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 hover:bg-red-500/80 text-gray-300 hover:text-white flex items-center justify-center transition-all cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
 
@@ -261,7 +262,7 @@
                     <i id="modal-icon" class="fa-solid fa-pen-to-square"></i>
                 </div>
                 <div>
-                    <h3 id="modal-title" class="text-xl sm:text-2xl font-bold text-white">
+                    <h3 id="modal-title" class="text-xl sm:text-2xl font-black text-white">
                         ثبت اطلاعات
                     </h3>
                     <p id="modal-subtitle" class="text-xs text-gray-300 mt-1">
@@ -277,7 +278,7 @@
 
                 <!-- Title / Subject Field -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1.5" for="subject-field">
+                    <label class="block text-xs font-black text-gray-300 mb-1.5" for="subject-field">
                         موضوع / عنوان (اختیاری)
                     </label>
                     <input type="text" id="subject-field"
@@ -288,7 +289,7 @@
                 <!-- Main Content Textarea -->
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
-                        <label class="block text-xs font-semibold text-gray-300" for="content-field">
+                        <label class="block text-xs font-black text-gray-300" for="content-field">
                             شرح متن <span class="text-brand-orange">*</span>
                         </label>
                         <span id="char-counter" class="text-[11px] text-gray-400">۰ / 2۰۰۰</span>
@@ -300,7 +301,7 @@
 
                 <!-- Image Attachment Section -->
                 <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">
+                    <label class="block text-xs font-black text-gray-300 mb-1.5">
                         پیوست عکس (اختیاری)
                     </label>
                     <div class="relative">
@@ -317,7 +318,7 @@
                         <img id="image-preview" src="" alt="پیش‌نمایش عکس"
                             class="max-h-32 rounded-xl border border-brand-orange/40 object-cover shadow-md">
                         <button type="button" onclick="removeImage()"
-                            class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow-md hover:bg-red-700 transition-all">
+                            class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center text-xs shadow-md hover:bg-red-700 transition-all cursor-pointer">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -325,7 +326,7 @@
 
                 <!-- Options: Anonymous submission -->
                 <div class="flex items-center justify-between pt-2">
-                    <span class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <span class="text-[11px] text-gray-400 flex items-center gap-1 font-medium">
                         <i class="fa-solid fa-lock text-emerald-400"></i>
                         محرمانه و محفوظ
                     </span>
@@ -334,7 +335,7 @@
                 <!-- Submit Button -->
                 <div class="pt-2">
                     <button type="submit" id="submit-btn"
-                        class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-lg hover:shadow-brand-orange/30 transition-all flex items-center justify-center gap-2">
+                        class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-sm shadow-lg hover:shadow-brand-orange/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
                         <span>ثبت نهایی و ارسال</span>
                         <i class="fa-solid fa-paper-plane text-xs"></i>
                     </button>
@@ -349,9 +350,7 @@
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- JavaScript Logic & Interactivity -->
-    <script src="./js/app.js">
-        
-    </script>
+    <script src="./js/app.js"></script>
 </body>
 
 </html>
