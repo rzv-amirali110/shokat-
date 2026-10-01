@@ -95,13 +95,6 @@ class AdminService {
         });
     }
 
-    // 🟢 اگر متد findById هم وجود ندارد، مطمئن شوید اضافه شده است:
-    static async findById(id) {
-        return await prisma.admin.findUnique({
-            where: { id },
-        });
-    }
-
     // 🟢 متد حذف ادمین
     static async deleteAdmin(id) {
         return await prisma.admin.delete({
@@ -114,6 +107,21 @@ class AdminService {
             data: {
                 lastLogoutAt: new Date(),
             },
+        });
+    }
+    // نمونه متدهای مورد نیاز در AdminService
+    static async updateAdmin(id, updateData) {
+        return await prisma.admin.update({
+            where: { id },
+            data: updateData,
+        });
+    }
+
+    static async updatePassword(id, newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        return await prisma.admin.update({
+            where: { id },
+            data: { password: hashedPassword },
         });
     }
 }
