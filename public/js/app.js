@@ -5,33 +5,120 @@ const categoriesConfig = {
         subtitle: 'مشکلات و دغدغه‌های شما دسته‌بندی شده و جهت بررسی پیگیری می‌شود.',
         icon: 'fa-bullhorn',
         colorClass: 'bg-gradient-to-br from-brand-orange to-red-500',
-        subjectPlaceholder: 'مثلاً: کیفیت غذای سلف مرکزی، مشکلات انتخاب واحد، یا سرویس خوابگاه...',
-        placeholder: 'شرح کامل دغدغه خود را بنویسید (مثلاً: عدم هماهنگی سرویس‌های خوابگاه با کلاس‌های بعدازظهر دانشکده فنی، نامناسب بودن سیستم گرمایشی دانشکده...)'
+        subjectPlaceholder: 'مثلاً: کیفیت غذای سلف مرکزی...',
+        placeholder: 'شرح کامل دغدغه خود را بنویسید...'
     },
     stories: {
         title: 'ثبت خاطرات و تجربه‌های دانشجویی',
         subtitle: 'خاطرات ماندگار، طنز یا ارزشمند دوران دانشجویی خود را ثبت کنید.',
         icon: 'fa-book-bookmark',
         colorClass: 'bg-gradient-to-br from-amber-400 to-amber-600',
-        subjectPlaceholder: 'مثلاً: روز اول ورود به دانشگاه، کلاس‌های آنلاین، یا صعود به قله تیم کوهنوردی...',
-        placeholder: 'خاطره جذاب خود را با جزئیات بنویسید (مثلاً: ماجرای عجیب و خنده‌دار گم کردن سالن امتحانات در هفته اول ترم اول...)'
+        subjectPlaceholder: 'مثلاً: روز اول ورود به دانشگاه...',
+        placeholder: 'خاطره جذاب خود را با جزئیات بنویسید...'
     }
 };
+
+// ==========================================
+// 🛡️ توابع امنیتی و پردازش تصویر
+// ==========================================
+
+// 1. جلوگیری از XSS (تبدیل کاراکترهای خطرناک)
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, function (tag) {
+        const charsToReplace = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        };
+        return charsToReplace[tag] || tag;
+    });
+}
+
+// 2. بررسی Magic Bytes (تایید هویت واقعی فایل)
+function checkMagicBytes(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = function (e) {
+            const arr = (new Uint8Array(e.target.result)).subarray(0, 4);
+            let header = "";
+            for (let i = 0; i < arr.length; i++) {
+                header += arr[i].toString(16).toUpperCase();
+            }
+            // بررسی امضای فایل:
+            // JPG/JPEG: شروع با FFD8FF
+            // PNG: شروع با 89504E47
+            if (header.startsWith("FFD8FF") || header === "89504E47") {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        };
+        reader.onerror = () => reject(false);
+        // فقط 4 بایت اول را برای سرعت بیشتر می‌خوانیم
+        reader.readAsArrayBuffer(file.slice(0, 4));
+    });
+}
+
+// 3. پاکسازی کامل عکس و کاهش حجم با Canvas (حذف EXIF و بدافزار)
+function sanitizeAndCompressImage(file, maxMbSize = 2) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // محاسبه ریسایز برای کاهش حجم (مثلا حداکثر عرض 1200 پیکسل)
+                const MAX_WIDTH = 1200;
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // رسم تصویر روی بوم (این کار تمام کدهای مخفی و EXIF را نابود میکند)
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // خروجی گرفتن به صورت فایل JPG با کیفیت 80%
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        resolve(newFile);
+                    } else {
+                        reject('خطا در پردازش تصویر');
+                    }
+                }, 'image/jpeg', 0.8);
+            };
+            img.onerror = () => reject('فرمت تصویر نامعتبر است');
+        };
+        reader.onerror = () => reject('خطا در خواندن فایل');
+    });
+}
+// ==========================================
 
 // Open Modal Function
 function openModal(categoryKey) {
     const config = categoriesConfig[categoryKey] || categoriesConfig.demands;
-
     document.getElementById('category-input').value = categoryKey;
     document.getElementById('modal-title').innerText = config.title;
     document.getElementById('modal-subtitle').innerText = config.subtitle;
 
-    // Icon and styling
     const iconBg = document.getElementById('modal-icon-bg');
     iconBg.className = `w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg ${config.colorClass}`;
     document.getElementById('modal-icon').className = `fa-solid ${config.icon}`;
 
-    // Placeholders
     const textarea = document.getElementById('content-field');
     const subjectInput = document.getElementById('subject-field');
     textarea.placeholder = config.placeholder;
@@ -39,15 +126,11 @@ function openModal(categoryKey) {
     textarea.value = '';
     subjectInput.value = '';
 
-    // Reset image attachment
     removeImage();
-
     updateCharCount();
 
-    // Display Modal with animation
     const backdrop = document.getElementById('modal-backdrop');
     const container = document.getElementById('modal-container');
-
     backdrop.classList.remove('hidden');
     setTimeout(() => {
         backdrop.classList.remove('opacity-0');
@@ -57,16 +140,19 @@ function openModal(categoryKey) {
 }
 
 // Image Selection Preview Handler
-function handleImagePreview(event) {
-    const file = event.target.files[0];
+async function handleImagePreview(event) {
+    let file = event.target.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-        showToast('حجم عکس نباید بیشتر از ۵ مگابایت باشد.', 'error');
+    // بررسی اولیه پسوند
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+        showToast('لطفاً فقط فایل تصویر (JPG یا PNG) انتخاب کنید.', 'error');
         removeImage();
         return;
     }
 
+    // پیش‌نمایش تصویر
     const reader = new FileReader();
     reader.onload = function (e) {
         document.getElementById('image-preview').src = e.target.result;
@@ -76,78 +162,90 @@ function handleImagePreview(event) {
     reader.readAsDataURL(file);
 }
 
-// Remove Attached Image
 function removeImage() {
     const fileInput = document.getElementById('image-upload');
     if (fileInput) fileInput.value = '';
-
     const previewContainer = document.getElementById('image-preview-container');
     if (previewContainer) previewContainer.classList.add('hidden');
-
     const previewImg = document.getElementById('image-preview');
     if (previewImg) previewImg.src = '';
-
     const labelText = document.getElementById('upload-label-text');
     if (labelText) labelText.innerText = 'انتخاب تصویر مرتبط (PNG, JPG)';
 }
 
-// Close Modal Function
 function closeModal() {
     const backdrop = document.getElementById('modal-backdrop');
     const container = document.getElementById('modal-container');
-
     backdrop.classList.add('opacity-0');
     container.classList.remove('scale-100');
     container.classList.add('scale-95');
-
     setTimeout(() => {
         backdrop.classList.add('hidden');
     }, 300);
 }
 
-// Live Character Counter
 function updateCharCount() {
     const textarea = document.getElementById('content-field');
     const counter = document.getElementById('char-counter');
     const len = textarea.value.length;
-
-    // Convert numbers to Persian
     const persianLen = len.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    counter.innerText = `${persianLen} / 2۰۰۰`;
+    counter.innerText = `${persianLen} / ۲۰۰۰`;
 }
 
 // Handle Form Submission
 async function handleFormSubmit(event) {
     event.preventDefault();
-
     const submitBtn = document.getElementById('submit-btn');
-    const category = document.getElementById('category-input').value; // demands یا stories
-    const subject = document.getElementById('subject-field').value.trim();
-    const content = document.getElementById('content-field').value.trim();
-    const imageFile = document.getElementById('image-upload').files[0];
+    const category = document.getElementById('category-input').value;
+
+    // دریافت و Escape کردن ورودی‌ها برای جلوگیری از XSS
+    let subject = document.getElementById('subject-field').value.trim();
+    let content = document.getElementById('content-field').value.trim();
+    subject = escapeHTML(subject);
+    content = escapeHTML(content);
+
+    let imageFile = document.getElementById('image-upload').files[0];
 
     if (!subject || !content) {
         showToast('عنوان و متن اصلی الزامی هستند.', 'error');
         return;
     }
 
-    // Show Loading State
     submitBtn.disabled = true;
     submitBtn.innerHTML = `
         <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
-        <span>در حال ارسال...</span>
+        <span>در حال پردازش و ارسال...</span>
     `;
 
     try {
+        // پردازش امنیتی تصویر در صورت وجود
+        if (imageFile) {
+            // ۱. بررسی مجیک بایت
+            const isRealImage = await checkMagicBytes(imageFile);
+            if (!isRealImage) {
+                showToast('ساختار فایل تصویر نامعتبر است (احتمال فایل مخرب).', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<span>ثبت نهایی و ارسال</span><i class="fa-solid fa-paper-plane text-xs"></i>`;
+                return;
+            }
+
+            // ۲. بازسازی تصویر روی بوم برای پاکسازی کدهای مخفی و کاهش حجم
+            try {
+                imageFile = await sanitizeAndCompressImage(imageFile);
+            } catch (error) {
+                showToast('خطا در پاکسازی و پردازش تصویر.', 'error');
+                throw new Error(error);
+            }
+        }
+
+        // ساخت فرم دیتا برای ارسال
         const formData = new FormData();
         formData.append('title', subject);
         formData.append('description', content);
-        
         if (imageFile) {
             formData.append('imageUrl', imageFile);
         }
 
-        // ارسال درخواست به /api/demands یا /api/stories
         const response = await fetch(`/api/${category}`, {
             method: 'POST',
             body: formData
@@ -156,7 +254,7 @@ async function handleFormSubmit(event) {
         const result = await response.json();
 
         if (response.ok) {
-            showToast(result.message || 'پیام شما با موفقیت ثبت شد و پس از بررسی قرار خواهد گرفت.', 'success');
+            showToast(result.message || 'پیام شما با موفقیت ثبت شد.', 'success');
 
             // Increment Local UI Counter
             const counterElem = document.getElementById(`counter-${category}`);
@@ -165,13 +263,13 @@ async function handleFormSubmit(event) {
                 currentVal += 1;
                 counterElem.innerText = currentVal.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
             }
-
             closeModal();
         } else {
             showToast(result.message || 'خطایی در ثبت اطلاعات رخ داد.', 'error');
         }
     } catch (err) {
-        showToast('خطا در ارتباط با سرور. لطفا اتصال اینترنت را بررسی کنید.', 'error');
+        showToast('خطا در ارتباط با سرور یا پردازش اطلاعات.', 'error');
+        console.error(err);
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
@@ -184,8 +282,9 @@ async function handleFormSubmit(event) {
 // Custom Toast Notification System
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
+    if (!container) return; // اطمینان از وجود کانتینر
 
+    const toast = document.createElement('div');
     const isSuccess = type === 'success';
     const bgColor = isSuccess ? 'bg-emerald-900/90 border-emerald-500/50 text-emerald-200' : 'bg-rose-900/90 border-rose-500/50 text-rose-200';
     const icon = isSuccess ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400';
@@ -198,24 +297,17 @@ function showToast(message, type = 'success') {
 
     container.appendChild(toast);
 
-    // Animate In
-    setTimeout(() => {
-        toast.classList.remove('translate-y-4', 'opacity-0');
-    }, 10);
-
-    // Auto Remove after 4 seconds
+    setTimeout(() => toast.classList.remove('translate-y-4', 'opacity-0'), 10);
     setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-4');
         setTimeout(() => toast.remove(), 300);
     }, 4000);
 }
 
-// Close modal on pressing Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
 });
 
-// Close modal when clicking outside modal box
 document.addEventListener('DOMContentLoaded', () => {
     const backdrop = document.getElementById('modal-backdrop');
     if (backdrop) {
