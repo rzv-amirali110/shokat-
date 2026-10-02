@@ -5,11 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>شوکت نیوز | پنل مدیریت و خروجی اسناد</title>
-    
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="../assets/logo-Bw-nLh3t.png"> 
-    
+    <link rel="icon" type="image/png" href="../assets/logo-Bw-nLh3t.png">
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -48,7 +48,7 @@
             }
         }
     </script>
-  <script type="module" crossorigin src="../assets/admin-E8PZ9giC.js"></script>
+  <script type="module" crossorigin src="../assets/admin-1DDNJGWa.js"></script>
   <link rel="modulepreload" crossorigin href="../assets/modulepreload-polyfill-Cuf-nviZ.js">
   <link rel="stylesheet" crossorigin href="../assets/admin-C3__E5jg.css">
 </head>
@@ -66,11 +66,14 @@
     <div id="login-screen"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300">
         <!-- جایگزینی glass-modal با کلاس‌های Tailwind -->
-        <div class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] w-full max-w-md p-6 sm:p-8 rounded-3xl orange-glow relative">
+        <div
+            class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] w-full max-w-md p-6 sm:p-8 rounded-3xl orange-glow relative">
             <div class="text-center mb-6 sm:mb-8">
                 <div
-                    class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 flex items-center justify-center rounded-full bg-brand-dark border border-brand-orange/40 orange-glow">
-                    <img src="../assets/logo-Bw-nLh3t.png" alt="لوگو شوکت نیوز" />
+                    class="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-gray-800 border-2 border-orange-500/40 shadow-[0_0_15px_rgba(249,115,22,0.15)] overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] group-hover:border-orange-500/80">
+                    <!-- تغییر به object-contain برای جلوگیری از بریده شدن لبه‌های لوگو -->
+                    <img src="../assets/logo-Bw-nLh3t.png" alt="لوگو شوکت نیوز"
+                        class="w-15 h-15 sm:w-12 sm:h-12 object-contain transition-transform duration-300 group-hover:scale-110" />
                 </div>
                 <h2 class="text-xl sm:text-2xl font-black text-white">ورود به پنل مدیریت</h2>
                 <p class="text-[10px] sm:text-xs text-gray-400 mt-2 px-2">جهت دسترسی به مطالبات، خاطرات و دانلود خروجی
@@ -125,8 +128,10 @@
             <div class="flex items-center justify-between w-full md:w-auto">
                 <div class="flex items-center gap-3 sm:gap-4">
                     <div
-                        class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl sm:rounded-2xl bg-brand-dark border border-brand-orange/40 orange-glow shrink-0">
-                        <img src="../assets/logo-Bw-nLh3t.png" alt="لوگو" />
+                        class="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-full bg-gray-800 border-2 border-orange-500/40 shadow-[0_0_15px_rgba(249,115,22,0.15)] overflow-hidden transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] group-hover:border-orange-500/80">
+                        <!-- تغییر به object-contain برای جلوگیری از بریده شدن لبه‌های لوگو -->
+                        <img src="../assets/logo-Bw-nLh3t.png" alt="لوگو شوکت نیوز"
+                            class="w-15 h-15 sm:w-12 sm:h-12 object-contain transition-transform duration-300 group-hover:scale-110" />
                     </div>
                     <div>
                         <h1
@@ -173,7 +178,8 @@
         <!-- کارت‌های آمار و اطلاعات -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <!-- اضافه شدن سایه به کارت‌های آمار برای زیبایی بیشتر -->
-            <div class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-brand-orange">
+            <div
+                class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-brand-orange">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
                     <span class="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">مطالبات جدید</span>
                     <i class="fa-solid fa-bullhorn text-brand-orange text-sm sm:text-lg hidden sm:block"
@@ -186,7 +192,8 @@
                 </div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-amber-400">
+            <div
+                class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-amber-400">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
                     <span class="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">خاطرات جدید</span>
                     <i class="fa-solid fa-book-bookmark text-amber-400 text-sm sm:text-lg hidden sm:block"
@@ -199,7 +206,8 @@
                 </div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-sky-400">
+            <div
+                class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-sky-400">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
                     <span class="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">کل پیام‌ها</span>
                     <i class="fa-solid fa-inbox text-sky-400 text-sm sm:text-lg hidden sm:block" aria-hidden="true"></i>
@@ -211,7 +219,8 @@
                 </div>
             </div>
 
-            <div class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-emerald-400">
+            <div
+                class="bg-white/10 backdrop-blur-[16px] shadow-lg rounded-xl sm:rounded-2xl p-3 sm:p-5 border-l-2 sm:border-l-4 border-emerald-400">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-1">
                     <span class="text-[10px] sm:text-xs text-gray-400 font-medium whitespace-nowrap">گرفته‌شده</span>
                     <i class="fa-solid fa-file-word text-emerald-400 text-sm sm:text-lg hidden sm:block"
@@ -227,7 +236,8 @@
 
         <!-- بخش خروجی فایل‌های Word -->
         <!-- اصلاح تایپوگرافی فاصله و افزودن افکت کامل شیشه‌ای -->
-        <div class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+        <div
+            class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 relative overflow-hidden">
             <div class="absolute -right-16 -top-16 w-32 h-32 md:w-48 md:h-48 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"
                 aria-hidden="true"></div>
 
@@ -261,7 +271,8 @@
 
         <!-- جدول داده‌ها و فیلترها -->
         <!-- اصلاح تایپوگرافی فاصله و افزودن افکت کامل شیشه‌ای -->
-        <div class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8">
+        <div
+            class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8">
 
             <div
                 class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -331,7 +342,7 @@
     <div id="detail-modal-backdrop" onclick="if(event.target === this) closeDetailModal()" role="dialog"
         aria-modal="true" aria-labelledby="detail-subject"
         class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden opacity-0 transition-opacity duration-300">
-        
+
         <!-- جایگزینی glass-modal -->
         <div
             class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] w-full max-w-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 relative transform scale-95 transition-transform duration-300 max-h-[95vh] overflow-y-auto">
@@ -397,7 +408,7 @@
     <div id="admin-modal-backdrop" onclick="if(event.target === this) closeAdminModal()" role="dialog" aria-modal="true"
         aria-labelledby="admin-modal-title"
         class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 hidden opacity-0 transition-opacity duration-300">
-        
+
         <!-- جایگزینی glass-modal -->
         <div
             class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] w-full max-w-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 relative transform scale-95 transition-transform duration-300 max-h-[95vh] overflow-y-auto">
@@ -508,7 +519,7 @@
     <div id="edit-admin-modal-backdrop" onclick="if(event.target === this) closeEditAdminModal()" role="dialog"
         aria-modal="true" aria-labelledby="edit-admin-modal-title"
         class="fixed inset-0 bg-black/80 backdrop-blur-md z-[55] flex items-center justify-center p-3 sm:p-4 hidden opacity-0 transition-opacity duration-300">
-        
+
         <!-- جایگزینی glass-modal -->
         <div
             class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] w-full max-w-lg rounded-2xl sm:rounded-3xl p-4 sm:p-6 relative transform scale-95 transition-transform duration-300">
@@ -524,7 +535,8 @@
                     <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
                 </div>
                 <div>
-                    <h3 id="edit-admin-modal-title" class="text-base sm:text-lg font-bold text-white">ویرایش اطلاعات مدیر</h3>
+                    <h3 id="edit-admin-modal-title" class="text-base sm:text-lg font-bold text-white">ویرایش اطلاعات
+                        مدیر</h3>
                     <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">به‌روزرسانی مشخصات و رمز عبور</p>
                 </div>
             </div>
@@ -533,13 +545,15 @@
                 <input type="hidden" id="edit-admin-id" name="admin_id">
 
                 <div>
-                    <label for="edit-admin-username" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">نام کاربری جدید</label>
+                    <label for="edit-admin-username" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">نام
+                        کاربری جدید</label>
                     <input type="text" id="edit-admin-username" name="username" required
                         class="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 sm:py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
                 </div>
 
                 <div>
-                    <label for="edit-admin-mobile" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">شماره موبایل جدید</label>
+                    <label for="edit-admin-mobile" class="block text-[10px] sm:text-[11px] text-gray-300 mb-1">شماره
+                        موبایل جدید</label>
                     <input type="text" id="edit-admin-mobile" name="mobile" required dir="ltr"
                         class="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 sm:py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange text-left">
                 </div>
