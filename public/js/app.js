@@ -347,3 +347,10 @@ async function fetchRealStats() {
         // در صورت بروز خطا، همان مقادیر پیش‌فرض HTML باقی می‌مانند
     }
 }
+// اتصال توابع به اسکوپ سراسری (Window) تا در رویدادهای onclick مستقیم HTML شناخته شوند
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.handleFormSubmit = handleFormSubmit;
+window.updateCharCount = updateCharCount;
+window.handleImagePreview = handleImagePreview;
+window.removeImage = removeImage;

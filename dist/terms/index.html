@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قوانین و مقررات | شوکت نیوز</title>
+    <!-- مسیر عکس‌ها و استایل‌ها به صورت نسبی (..) تنظیم شد تا در بیلد Vite مشکلی نداشته باشد -->
+    <link rel="icon" type="image/png" href="../assets/logo-Bw-nLh3t.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF7E29',
+                            dark: '#2D3238',
+                        }
+                    },
+                    fontFamily: { vazir: ['Vazirmatn', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+  <link rel="stylesheet" crossorigin href="../assets/style-B78-0Mh2.css">
+</head>
+
+<body class="min-h-screen text-gray-100 doodle-bg flex flex-col justify-between relative overflow-x-hidden selection:bg-brand-orange selection:text-white font-vazir">
+
+    <!-- Ambient Gradient Background Glows -->
+    <div class="fixed top-10 right-10 w-96 h-96 bg-brand-orange/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="fixed bottom-10 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full py-6 px-4 sm:px-8 bg-white/10 backdrop-blur-[16px] border-b border-white/15 shadow-[0_4px_30px_rgba(0,0,0,0.1)] sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="../" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+                <div class="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center orange-glow rounded-full bg-brand-dark border border-brand-orange/40 overflow-hidden">
+                    <img src="../assets/logo-Bw-nLh3t.png" alt="لوگو شوکت نیوز" class="w-full h-full object-cover" />
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-l from-amber-300 via-brand-orange to-orange-500 tracking-tight">
+                        شوکت نیوز
+                    </h1>
+                    <p class="text-xs sm:text-sm text-gray-300 font-light mt-0.5">صدای دانشجویان</p>
+                </div>
+            </a>
+            <!-- جایگزینی کلاس‌های شیشه‌ای برای دکمه بازگشت -->
+            <a href="../" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-brand-orange/20 text-white hover:text-brand-orange transition-all font-medium text-sm">
+                <i class="fa-solid fa-arrow-right"></i>
+                بازگشت به خانه
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-8 py-10 w-full flex-grow">
+        <!-- جایگزینی کامل استایل شیشه‌ای (سایه، بلور و حاشیه) با کلاس‌های تیلویند -->
+        <div class="bg-white/10 backdrop-blur-[16px] border border-white/15 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-3xl p-6 sm:p-10">
+            <div class="flex items-center gap-4 mb-8 border-b border-white/10 pb-6">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-black text-white">قوانین و مقررات استفاده</h2>
+            </div>
+
+            <div class="space-y-8 text-gray-300 text-sm sm:text-base leading-relaxed">
+                <section>
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        محتوای مجاز و اخلاقی
+                    </h3>
+                    <p>کاربران گرامی موظفند از ثبت هرگونه محتوای توهین‌آمیز، افترا، کلمات رکیک، مسائل سیاسی حاشیه‌ساز یا مطالبی که مغایر با شئونات دانشجویی و قوانین جمهوری اسلامی ایران است خودداری کنند. محتواهای ناقض این بند بدون بررسی حذف خواهند شد.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        صحت و اعتبار اطلاعات
+                    </h3>
+                    <p>رسالت شوکت نیوز انتقال صدای واقعی دانشجویان است. لطفاً در ثبت مطالبات و دغدغه‌های صنفی، آموزشی و رفاهی از بیان مشکلات واقعی خودداری کرده و از انتشار اخبار کذب و شایعات پرهیز نمایید.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        حق ویرایش مدیریت
+                    </h3>
+                    <p>تیم مدیریت و سردبیری شوکت نیوز این حق را دارد که پیش از انتشار خاطرات و دغدغه‌ها در کانال‌های رسمی، در صورت نیاز ویرایش‌های جزئی (مانند اصلاحات املایی و نگارشی) روی متن اعمال کند تا خوانایی آن برای مخاطبان افزایش یابد.</p>
+                </section>
+            </div>
+            
+            <!-- Mobile Back Button -->
+            <div class="mt-10 pt-6 border-t border-white/10 text-center md:hidden">
+                <a href="../" class="inline-flex items-center gap-2 text-brand-orange font-bold px-6 py-3 bg-brand-orange/10 rounded-xl">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    بازگشت به صفحه اصلی
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-white/15 py-8 px-4 text-center text-xs text-gray-400 bg-white/10 backdrop-blur-[16px] shadow-[0_-4px_30px_rgba(0,0,0,0.1)] mt-12">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <p class="font-medium">© ۲۰۲۶ شوکت نیوز - تمامی حقوق برای دانشجویان محفوظ است.</p>
+            <div class="flex items-center gap-4 text-gray-400">
+                <!-- لینک‌ها به صورت نسبی آپدیت شدند -->
+                <a href="../privacy-policy" class="hover:text-brand-orange transition-colors">حریم خصوصی</a>
+                <span>•</span>
+                <a href="../terms" class="text-brand-orange font-bold">قوانین و مقررات</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
